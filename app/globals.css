@@ -1,0 +1,377 @@
+/* ============================================================
+   AlpineFlow — globals.css
+   Single source of truth for color, type, spacing, motion.
+   Next.js App Router entry point.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@300;400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+
+:root {
+
+  /* ----------------------------------------------------------
+     COLOR — Materials, not brand colors.
+     Named after the physical thing they evoke.
+     Always low saturation. Never neon. Never pure black/white.
+     ---------------------------------------------------------- */
+
+  /* Linen — warm off-whites. The default canvas. */
+  --linen-50:  #FBF8F3;
+  --linen-100: #F5F0E8;
+  --linen-200: #ECE4D6;
+  --linen-300: #DDD2BE;
+
+  /* Fog — cool warm-grey, atmospheric mid-tones */
+  --fog-100: #E8E5DF;
+  --fog-200: #CFCBC2;
+  --fog-300: #A8A39A;
+  --fog-400: #7A746A;
+
+  /* Stone — deeper neutrals for text and ink */
+  --stone-500: #5C5750;
+  --stone-700: #3A3530;
+  --stone-900: #1F1C18;
+
+  /* Wood — warm browns, used sparingly for warmth */
+  --wood-300: #C9A98A;
+  --wood-500: #8B6B4A;
+  --wood-700: #5A4029;
+
+  /* Psychological accents — one per screen, never combined */
+  --moss-100:    #E4EADC;  /* eco, sustainability, growth */
+  --moss-300:    #A8B696;
+  --moss-500:    #6E8559;
+  --moss-700:    #3F5234;
+
+  --glacier-100: #E1EAEE;  /* calm, water, clarity, breath */
+  --glacier-300: #A8BFC8;
+  --glacier-500: #5C7E8C;
+  --glacier-700: #344E5C;
+
+  --twilight-100: #E8E2EA; /* wellness, evening, mindfulness */
+  --twilight-300: #B8AABE;
+  --twilight-500: #7E6E88;
+  --twilight-700: #4A3F54;
+
+  --ember-100:   #F4E6D4;  /* hospitality, primary CTA warmth */
+  --ember-300:   #E0B884;
+  --ember-500:   #C68B4A;
+  --ember-700:   #8C5A2A;
+
+  --bloom-100:   #F2DDD8;  /* joy, surprise, delight — tiny touches only */
+  --bloom-300:   #D6A89F;
+  --bloom-500:   #B6776B;
+  --bloom-700:   #7E4A41;
+
+  --slate-700:   #3D4448;  /* evening / immersive modes */
+  --slate-900:   #1B1F22;
+
+  /* Semantic aliases */
+  --bg:          #FAFAF7;
+  --bg-raised:   #FFFFFF;
+  --bg-sunken:   #F0EFEA;
+  --bg-evening:  #0E0E10;
+
+  --fg:          #0E0E10;
+  --fg-muted:    #2E2E32;
+  --fg-soft:     #6E6E74;
+  --fg-quiet:    #A8A8AE;
+  --fg-on-dark:  var(--linen-50);
+
+  --border:      var(--linen-300);
+  --border-soft: var(--linen-200);
+  --divider:     var(--fog-100);
+
+  --accent-eco:       var(--moss-500);
+  --accent-calm:      var(--glacier-500);
+  --accent-quiet:     var(--twilight-500);
+  --accent-warm:      var(--ember-500);
+  --accent-joy:       var(--bloom-500);
+  --accent-warm-soft: var(--ember-100);
+
+  /* ----------------------------------------------------------
+     TYPOGRAPHY
+     Geist: UI workhorse — calm, contemporary.
+     Instrument Serif italic: single grace note for emotion.
+     ---------------------------------------------------------- */
+  --font-sans:  "Geist", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  --font-serif: "Instrument Serif", "Hoefler Text", Georgia, serif;
+  --font-mono:  "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Modular scale — 1.250 minor third, generous and breathable */
+  --text-xs:   12px;
+  --text-sm:   14px;
+  --text-base: 16px;
+  --text-md:   18px;
+  --text-lg:   22px;
+  --text-xl:   28px;
+  --text-2xl:  36px;
+  --text-3xl:  48px;
+  --text-4xl:  64px;
+  --text-5xl:  88px;   /* hero serif moments */
+  --text-6xl:  120px;  /* cinematic title overlays */
+
+  --leading-tight:   1.1;
+  --leading-snug:    1.25;
+  --leading-normal:  1.5;
+  --leading-relaxed: 1.7;
+  --leading-loose:   1.9;
+
+  --tracking-tight:  -0.02em;
+  --tracking-normal:  0;
+  --tracking-wide:    0.04em;
+  --tracking-wider:   0.18em; /* eyebrow labels */
+
+  /* ----------------------------------------------------------
+     SPACING — 4px base, generous up the scale.
+     Whitespace is the primary design tool.
+     ---------------------------------------------------------- */
+  --s-1:  4px;
+  --s-2:  8px;
+  --s-3:  12px;
+  --s-4:  16px;
+  --s-5:  24px;
+  --s-6:  32px;
+  --s-7:  48px;
+  --s-8:  64px;
+  --s-9:  96px;
+  --s-10: 128px;
+  --s-11: 192px;
+
+  /* ----------------------------------------------------------
+     RADII — Soft, never sharp.
+     ---------------------------------------------------------- */
+  --r-sm:   6px;
+  --r-md:   12px;
+  --r-lg:   20px;
+  --r-xl:   32px;
+  --r-pill: 999px;
+
+  /* ----------------------------------------------------------
+     SHADOWS — Diffuse, low-opacity, cool-neutral tinted.
+     No harsh drop shadows. Light is ambient.
+     ---------------------------------------------------------- */
+  --shadow-soft:        0 1px 2px rgba(40,44,50,0.05), 0 4px 12px rgba(40,44,50,0.05);
+  --shadow-lift:        0 2px 4px rgba(40,44,50,0.06), 0 12px 28px rgba(40,44,50,0.07);
+  --shadow-float:       0 4px 8px rgba(40,44,50,0.07), 0 24px 56px rgba(40,44,50,0.09);
+  --shadow-inset:       inset 0 1px 2px rgba(40,44,50,0.05);
+  --shadow-glow-glacier:0 0 56px rgba(92,126,140,0.22);
+  --shadow-glow-cool:   0 0 64px rgba(40,60,80,0.14);
+
+  /* ----------------------------------------------------------
+     MOTION — Slow, cinematic, never bouncy.
+     Principle: arrive · expand · soften
+     ---------------------------------------------------------- */
+  --ease-calm:  cubic-bezier(0.22, 0.61, 0.36, 1); /* default */
+  --ease-soft:  cubic-bezier(0.4,  0.0,  0.2,  1);
+  --ease-enter: cubic-bezier(0.16, 1,    0.3,  1); /* expressive enter */
+  --ease-exit:  cubic-bezier(0.4,  0.0,  1,    1);
+
+  --dur-instant: 160ms;
+  --dur-quick:   320ms;
+  --dur-calm:    640ms;  /* default — deliberately slow */
+  --dur-slow:    1100ms;
+  --dur-cinema:  1800ms;
+}
+
+/* ============================================================
+   BASE RESET + GLOBAL STYLES
+   ============================================================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
+  hanging-punctuation: first last;
+}
+
+body {
+  min-height: 100dvh;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--fg-muted);
+  background-color: var(--bg);
+  font-weight: 400;
+}
+
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+ul[role="list"], ol[role="list"] {
+  list-style: none;
+}
+
+input, button, textarea, select {
+  font: inherit;
+  color: inherit;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  text-wrap: balance;
+  line-height: var(--leading-tight);
+  color: var(--fg);
+}
+
+p, li, figcaption {
+  text-wrap: pretty;
+  max-width: 72ch;
+}
+
+::selection {
+  background: color-mix(in oklch, var(--accent-calm) 20%, transparent);
+  color: var(--fg);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-calm);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+button {
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+a, button, [role="button"], input, textarea, select {
+  transition:
+    color var(--dur-quick) var(--ease-calm),
+    background var(--dur-quick) var(--ease-calm),
+    border-color var(--dur-quick) var(--ease-calm),
+    box-shadow var(--dur-quick) var(--ease-calm),
+    opacity var(--dur-quick) var(--ease-calm);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ============================================================
+   SEMANTIC TYPE STYLES
+   Use these classes, not raw vars, in components.
+   ============================================================ */
+
+.eyebrow {
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--fg-soft);
+}
+
+.display {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: var(--text-5xl);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.035em;
+  color: var(--fg);
+}
+
+/* The single grace note — use sparingly within a sans phrase for emotion */
+.grace {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+h1, .h1 {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: var(--text-4xl);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+h2, .h2 {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: var(--text-2xl);
+  line-height: var(--leading-snug);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+h3, .h3 {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: var(--text-lg);
+  line-height: var(--leading-snug);
+}
+
+.lead {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: var(--text-lg);
+  line-height: var(--leading-relaxed);
+  letter-spacing: -0.01em;
+  color: var(--fg-muted);
+}
+
+.caption {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--fg-soft);
+}
+
+.mono, code {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--fg-muted);
+}
+
+.metric {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: var(--text-4xl);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--fg);
+  font-feature-settings: "tnum" 1;
+}
