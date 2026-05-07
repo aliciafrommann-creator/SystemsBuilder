@@ -1,4 +1,4 @@
-# AlpineFlow
+# # AlpineFlow
 
 Next-generation sustainable hospitality ecosystem.
 
@@ -28,7 +28,7 @@ A cinematic, immersive, emotionally calming digital hospitality platform for mod
 
 ## Development
 
-```bash
+\`\`\`bash
 npm install
 npm run dev
-```
+\`\`\`
