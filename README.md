@@ -1,21 +1,34 @@
-# AlpineFlow
+# # AlpineFlow
 
-Systems-thinking web application. Built with Next.js + TypeScript + Supabase, deployed on Vercel.
+Next-generation sustainable hospitality ecosystem.
 
-## Design System
-
-See `app/globals.css` for the single source of truth: color tokens, typography, spacing, motion, and shadows — all derived from the AlpineFlow brand language.
-
-**Palette philosophy:** Materials, not brand colors. Low saturation. Named after physical things they evoke (Linen, Fog, Stone, Moss, Glacier, Ember…).
-
-**Type:** Geist (UI workhorse) + Instrument Serif italic (single grace note for editorial moments).
-
-**Motion:** Slow, cinematic, never bouncy. Default duration 640ms. Ease: `cubic-bezier(0.22, 0.61, 0.36, 1)`.
+A cinematic, immersive, emotionally calming digital hospitality platform for modern sustainable tourism.
 
 ## Stack
 
-- Next.js 15 (App Router)
-- TypeScript
-- Tailwind CSS v4
-- Supabase
-- Vercel
+- **Next.js 14** — App Router
+- **React Three Fiber + Three.js** — 3D scroll experience
+- **Framer Motion** — UI transitions
+- **TailwindCSS** — Design system
+- **Supabase** — Backend
+- **TypeScript**
+
+## Routes
+
+| Route | Description |
+|-------|-------------|
+| `/` | Cinematic 3D alpine lobby |
+| `/guest` | Guest experience hub + stay modes |
+| `/guest/housekeeping` | Smart room preferences |
+| `/guest/wellness` | Spa & movement booking |
+| `/guest/discovery` | Regional curated experiences |
+| `/guest/sustainability` | Personal impact metrics |
+| `/hotel` | Hotel operations dashboard |
+| `/qr/[hotelId]` | QR code entry point |
+
+## Development
+
+\`\`\`bash
+npm install
+npm run dev
+\`\`\`
