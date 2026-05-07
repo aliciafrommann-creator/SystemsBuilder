@@ -5,17 +5,29 @@ import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { DayPreset } from '@/lib/alpineflow/timeOfDay'
 
-// Window positions — [x, y, z] in hotel local space
-const FRONT_WINS = [
+const FRONT_WINS: [number,number,number][] = [
   [-4.5, 1.2, 4.06], [-2.2, 1.2, 4.06], [0, 1.2, 4.06], [2.2, 1.2, 4.06], [4.5, 1.2, 4.06],
   [-3.8, 3.3, 4.06], [-1.5, 3.3, 4.06], [1.5, 3.3, 4.06], [3.8, 3.3, 4.06],
   [-2.4, 5.1, 4.06], [0, 5.1, 4.06], [2.4, 5.1, 4.06],
 ]
-const SIDE_WINS = [
-  [9.06, 1.2,  0.5], [9.06, 1.2, -1.5], [9.06, 3.3,  0.5], [9.06, 3.3, -1.5],
+const SIDE_WINS: [number,number,number][] = [
+  [9.06, 1.2, 0.5], [9.06, 1.2, -1.5], [9.06, 3.3, 0.5], [9.06, 3.3, -1.5],
 ]
+const RAIL_X    = [-4, -2, 0, 2, 4]
+const PORCH_X   = [-1.8, 1.8]
+const DORMER_X  = [-2.5, 0, 2.5]
+const LANTERN_X = [-2.2, 2.2]
+const PATH_LAMPS: [number,number][] = [[-3, 5], [0, 7], [3, 8.5]]
+const TABLES: [number,number][] = [[-2.5, 7.8], [0, 7.8], [2.5, 7.8]]
+const CHAIR_OFFSETS: [number,number][] = [[-0.32, 0], [0.32, 0], [0, -0.32], [0, 0.32]]
 
-export function AlpineHotel({ preset, scrollProgress }: { preset: DayPreset; scrollProgress: number }) {
+export function AlpineHotel({
+  preset,
+  scrollProgress,
+}: {
+  preset: DayPreset
+  scrollProgress: number
+}) {
   const smoke0 = useRef<THREE.Mesh>(null)
   const smoke1 = useRef<THREE.Mesh>(null)
   const smoke2 = useRef<THREE.Mesh>(null)
@@ -30,15 +42,14 @@ export function AlpineHotel({ preset, scrollProgress }: { preset: DayPreset; scr
 
   useFrame(({ clock }) => {
     const t = clock.elapsedTime
-    // Smoke drifts upward and sways
-    ;[smoke0, smoke1, smoke2].forEach((r, i) => {
+    const smokes = [smoke0, smoke1, smoke2]
+    smokes.forEach((r, i) => {
       if (!r.current) return
       r.current.position.y = 6.5 + i * 0.55 + Math.sin(t * 0.35 + i * 2.1) * 0.4
       r.current.position.x = -1.9 + Math.sin(t * 0.22 + i * 1.2) * 0.3
       ;(r.current.material as THREE.MeshBasicMaterial).opacity =
         (isNight ? 0.38 : 0.14) * (1 - i * 0.22)
     })
-    // Lantern flicker
     const flicker = isNight ? 1.2 + Math.sin(t * 9.3) * 0.18 + Math.sin(t * 7.1) * 0.08 : 0.15
     if (lantern1.current) lantern1.current.intensity = flicker
     if (lantern2.current) lantern2.current.intensity = flicker
@@ -48,34 +59,30 @@ export function AlpineHotel({ preset, scrollProgress }: { preset: DayPreset; scr
   return (
     <group position={[0, -1.8, -4]}>
 
-      {/* ── Main body ── */}
+      {/* Main body */}
       <mesh position={[0, 1.6, 0]} castShadow receiveShadow>
         <boxGeometry args={[12, 3.2, 8]} />
         <meshLambertMaterial color="#e8ddd0" />
       </mesh>
-      {/* 1st floor */}
       <mesh position={[0, 3.8, 0.5]} castShadow receiveShadow>
         <boxGeometry args={[10.5, 2.4, 7.5]} />
         <meshLambertMaterial color="#ddd2c4" />
       </mesh>
-      {/* Attic */}
       <mesh position={[0, 5.6, 0.8]} castShadow receiveShadow>
         <boxGeometry args={[8, 1.8, 6.5]} />
         <meshLambertMaterial color="#d8ccbe" />
       </mesh>
-      {/* Roof eave */}
       <mesh position={[0, 7.0, 0.5]} castShadow>
         <boxGeometry args={[11.5, 0.28, 8.5]} />
         <meshLambertMaterial color="#4a4038" />
       </mesh>
-      {/* Main roof */}
       <mesh position={[0, 8.2, 0.5]} castShadow>
         <coneGeometry args={[6.8, 2.4, 4]} />
         <meshLambertMaterial color="#3a3028" />
       </mesh>
 
-      {/* ── Dormers ── */}
-      {([-2.5, 0, 2.5] as number[]).map((x, i) => (
+      {/* Dormers */}
+      {DORMER_X.map((x, i) => (
         <group key={i} position={[x, 7.8, 3.2]}>
           <mesh castShadow>
             <boxGeometry args={[1.2, 1.0, 0.65]} />
@@ -92,7 +99,7 @@ export function AlpineHotel({ preset, scrollProgress }: { preset: DayPreset; scr
         </group>
       ))}
 
-      {/* ── Right wing ── */}
+      {/* Right wing */}
       <mesh position={[9, 1.4, -0.5]} castShadow receiveShadow>
         <boxGeometry args={[6, 2.8, 7]} />
         <meshLambertMaterial color="#e0d5c8" />
@@ -106,7 +113,7 @@ export function AlpineHotel({ preset, scrollProgress }: { preset: DayPreset; scr
         <meshLambertMaterial color="#3a3028" />
       </mesh>
 
-      {/* ── Left wing / spa ── */}
+      {/* Left wing / spa */}
       <mesh position={[-9, 1.0, -0.5]} castShadow receiveShadow>
         <boxGeometry args={[4.5, 2, 6]} />
         <meshLambertMaterial color="#e2d8cc" />
@@ -116,8 +123,8 @@ export function AlpineHotel({ preset, scrollProgress }: { preset: DayPreset; scr
         <meshLambertMaterial color="#3a3028" />
       </mesh>
 
-      {/* ── Balcony rail ── */}
-      {([-4, -2, 0, 2, 4] as number[]).map((x, i) => (
+      {/* Balcony rail */}
+      {RAIL_X.map((x, i) => (
         <mesh key={i} position={[x, 1.1, 4.15]} castShadow>
           <cylinderGeometry args={[0.04, 0.04, 1.2, 5]} />
           <meshLambertMaterial color="#6a4828" />
@@ -128,7 +135,7 @@ export function AlpineHotel({ preset, scrollProgress }: { preset: DayPreset; scr
         <meshLambertMaterial color="#6a4828" />
       </mesh>
 
-      {/* ── Chimney ── */}
+      {/* Chimney */}
       <mesh position={[-2, 8.2, 0]} castShadow>
         <boxGeometry args={[0.7, 2.8, 0.7]} />
         <meshLambertMaterial color="#5a4838" />
@@ -138,7 +145,7 @@ export function AlpineHotel({ preset, scrollProgress }: { preset: DayPreset; scr
         <meshLambertMaterial color="#3a2818" />
       </mesh>
 
-      {/* ── Smoke ── */}
+      {/* Smoke */}
       <mesh ref={smoke0} position={[-1.9, 6.5, 0]}>
         <sphereGeometry args={[0.3, 8, 8]} />
         <meshBasicMaterial color="#c8c0b8" transparent opacity={0.18} />
@@ -152,7 +159,7 @@ export function AlpineHotel({ preset, scrollProgress }: { preset: DayPreset; scr
         <meshBasicMaterial color="#ccc4bc" transparent opacity={0.08} />
       </mesh>
 
-      {/* ── Entry porch ── */}
+      {/* Entry porch */}
       <mesh position={[0, 0.4, 5.0]} castShadow receiveShadow>
         <boxGeometry args={[4.5, 0.8, 2]} />
         <meshLambertMaterial color="#c8b898" />
@@ -161,14 +168,14 @@ export function AlpineHotel({ preset, scrollProgress }: { preset: DayPreset; scr
         <boxGeometry args={[4, 0.2, 1.2]} />
         <meshLambertMaterial color="#4a3828" />
       </mesh>
-      {([-1.8, 1.8] as number[]).map((x, i) => (
+      {PORCH_X.map((x, i) => (
         <mesh key={i} position={[x, 1.55, 5.65]} castShadow>
           <cylinderGeometry args={[0.12, 0.14, 3.1, 6]} />
           <meshLambertMaterial color="#8a6848" />
         </mesh>
       ))}
 
-      {/* ── Door ── */}
+      {/* Door */}
       <mesh position={[0, 1.4, 4.06]}>
         <boxGeometry args={[1.4, 2.6, 0.1]} />
         <meshLambertMaterial color="#5a3820" />
@@ -178,68 +185,84 @@ export function AlpineHotel({ preset, scrollProgress }: { preset: DayPreset; scr
         <meshLambertMaterial color="#3a2810" />
       </mesh>
 
-      {/* ── Front windows ── */}
+      {/* Front windows */}
       {FRONT_WINS.map(([x, y, z], i) => (
         <group key={i}>
-          <mesh position={[x as number, y as number, z as number]}>
+          <mesh position={[x, y, z]}>
             <boxGeometry args={[0.95, 1.12, 0.05]} />
             <meshStandardMaterial color="#b89030" emissive={wEmit} emissiveIntensity={wEmitInt} transparent opacity={0.9} />
           </mesh>
-          <mesh position={[x as number, y as number, (z as number) - 0.01]}>
+          <mesh position={[x, y, z - 0.01]}>
             <boxGeometry args={[1.08, 1.26, 0.04]} />
             <meshLambertMaterial color="#5a3820" />
           </mesh>
         </group>
       ))}
 
-      {/* ── Side windows (right wing) ── */}
+      {/* Side windows — right wing */}
       {SIDE_WINS.map(([x, y, z], i) => (
         <group key={i}>
-          <mesh position={[x as number, y as number, z as number]}>
+          <mesh position={[x, y, z]}>
             <boxGeometry args={[0.05, 1.12, 0.95]} />
             <meshStandardMaterial color="#b89030" emissive={wEmit} emissiveIntensity={wEmitInt} transparent opacity={0.9} />
           </mesh>
-          <mesh position={[(x as number) - 0.01, y as number, z as number]}>
+          <mesh position={[x - 0.01, y, z]}>
             <boxGeometry args={[0.04, 1.26, 1.08]} />
             <meshLambertMaterial color="#5a3820" />
           </mesh>
         </group>
       ))}
 
-      {/* ── Interior lobby light ── */}
+      {/* Lobby light */}
       <pointLight ref={lobbyLight} position={[0, 2.2, 1.5]} color="#f5c84a" intensity={isNight ? 2.0 : 0.25} distance={14} decay={2} />
 
-      {/* ── Entry lanterns ── */}
-      <group position={[-2.2, 2.9, 5.1]}>
-        <mesh><sphereGeometry args={[0.14, 8, 8]} /><meshBasicMaterial color="#f5d080" /></mesh>
-        <pointLight ref={lantern1} color="#f5c060" intensity={isNight ? 1.2 : 0.15} distance={9} decay={2} />
-      </group>
-      <group position={[2.2, 2.9, 5.1]}>
-        <mesh><sphereGeometry args={[0.14, 8, 8]} /><meshBasicMaterial color="#f5d080" /></mesh>
-        <pointLight ref={lantern2} color="#f5c060" intensity={isNight ? 1.2 : 0.15} distance={9} decay={2} />
-      </group>
-
-      {/* ── Path lanterns ── */}
-      {([[−3, 5], [0, 7], [3, 8.5]] as [number,number][]).map(([x, z], i) => (
-        <group key={i} position={[x, -1.6, z]}>
-          <mesh castShadow><cylinderGeometry args={[0.05, 0.05, 1.4, 5]} /><meshLambertMaterial color="#5a4030" /></mesh>
-          <mesh position={[0, 0.82, 0]}><sphereGeometry args={[0.11, 7, 7]} /><meshBasicMaterial color="#f5d080" /></mesh>
-          <pointLight position={[0, 0.82, 0]} color="#f5c060" intensity={isNight ? 0.7 : 0.08} distance={6} decay={2} />
+      {/* Entry lanterns */}
+      {LANTERN_X.map((x, i) => (
+        <group key={i} position={[x, 2.9, 5.1]}>
+          <mesh><sphereGeometry args={[0.14, 8, 8]} /><meshBasicMaterial color="#f5d080" /></mesh>
+          <pointLight
+            ref={i === 0 ? lantern1 : lantern2}
+            color="#f5c060"
+            intensity={isNight ? 1.2 : 0.15}
+            distance={9}
+            decay={2}
+          />
         </group>
       ))}
 
-      {/* ── Terrace ── */}
+      {/* Path lanterns */}
+      {PATH_LAMPS.map(([x, z], i) => (
+        <group key={i} position={[x, -1.6, z]}>
+          <mesh castShadow>
+            <cylinderGeometry args={[0.05, 0.05, 1.4, 5]} />
+            <meshLambertMaterial color="#5a4030" />
+          </mesh>
+          <mesh position={[0, 0.82, 0]}>
+            <sphereGeometry args={[0.11, 7, 7]} />
+            <meshBasicMaterial color="#f5d080" />
+          </mesh>
+          <pointLight
+            position={[0, 0.82, 0]}
+            color="#f5c060"
+            intensity={isNight ? 0.7 : 0.08}
+            distance={6}
+            decay={2}
+          />
+        </group>
+      ))}
+
+      {/* Terrace */}
       <mesh position={[0, -1.3, 6.8]} receiveShadow>
         <boxGeometry args={[8, 0.14, 3.2]} />
         <meshLambertMaterial color="#b8a890" />
       </mesh>
-      {([[−2.5, 7.8], [0, 7.8], [2.5, 7.8]] as [number,number][]).map(([x, z], i) => (
+      {TABLES.map(([x, z], i) => (
         <group key={i} position={[x, -1.3, z]}>
           <mesh castShadow position={[0, 0.05, 0]}>
             <cylinderGeometry args={[0.38, 0.38, 0.07, 9]} />
             <meshLambertMaterial color="#c8a888" />
           </mesh>
-          {([[−0.32,0],[0.32,0],[0,−0.32],[0,0.32]] as [number,number][]).map(([cx, cz], ci) => (
+          {CHAIR_OFFSETS.map(([cx, cz], ci) => (
             <mesh key={ci} castShadow position={[cx, -0.32, cz]}>
               <boxGeometry args={[0.28, 0.55, 0.28]} />
               <meshLambertMaterial color="#9a7858" />
@@ -248,12 +271,12 @@ export function AlpineHotel({ preset, scrollProgress }: { preset: DayPreset; scr
         </group>
       ))}
 
-      {/* ── 3D Hotspot labels ── */}
+      {/* 3D Hotspot labels */}
       {hotspots && [
-        { l: 'Check In',    p: [0,    4.2, 5.5] as [number,number,number], href: '/guest' },
-        { l: 'Wellness Spa',p: [-9,   2.8, 1.5] as [number,number,number], href: '/guest/wellness' },
-        { l: 'Terrace',     p: [0,    0.4, 8.0] as [number,number,number], href: '/guest' },
-        { l: 'Restaurant',  p: [9,    2.8, 1.5] as [number,number,number], href: '/guest/discovery' },
+        { l: 'Check In',     p: [0,    4.2, 5.5] as [number,number,number], href: '/guest' },
+        { l: 'Wellness Spa', p: [-9,   2.8, 1.5] as [number,number,number], href: '/guest/wellness' },
+        { l: 'Terrace',      p: [0,    0.4, 8.2] as [number,number,number], href: '/guest' },
+        { l: 'Restaurant',   p: [9,    2.8, 1.5] as [number,number,number], href: '/guest/discovery' },
       ].map(hs => (
         <Html key={hs.l} position={hs.p} center distanceFactor={18}>
           <a href={hs.href}>
@@ -270,9 +293,9 @@ export function AlpineHotel({ preset, scrollProgress }: { preset: DayPreset; scr
               whiteSpace: 'nowrap',
               backdropFilter: 'blur(18px)',
               cursor: 'pointer',
-              boxShadow: '0 4px 24px rgba(0,0,0,0.45), 0 0 0 0.5px rgba(201,169,110,0.2)',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.45)',
             }}>
-              ↑ {hs.l}
+              {hs.l}
             </div>
           </a>
         </Html>
