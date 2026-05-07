@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500&display=swap');
+
+:root {
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-sans:  'Inter', system-ui, sans-serif;
+  --color-fog:    #F7F4EF;
+  --color-linen:  #EDE7DC;
+  --color-stone:  #C8B89A;
+  --color-bark:   #9B7D5E;
+  --color-earth:  #6B5240;
+  --color-forest: #2D4A3E;
+  --color-deep:   #1A2E28;
+  --color-night:  #0F1C18;
+  --color-snow:   #FAFAF7;
+  --color-gold:   #C9A96E;
+  --transition-alpine: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* { box-sizing: border-box; padding: 0; margin: 0; }
+
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+body {
+  background-color: var(--color-fog);
+  color: var(--color-deep);
+  font-family: var(--font-sans);
+  font-weight: 300;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--color-linen); }
+::-webkit-scrollbar-thumb { background: var(--color-stone); border-radius: 3px; }
+::selection { background: rgba(45,74,62,0.15); }
+:focus-visible { outline: 2px solid var(--color-forest); outline-offset: 3px; border-radius: 4px; }
+
+.text-display { font-family: var(--font-serif); font-weight: 300; letter-spacing: -0.025em; line-height: 1.05; }
+.text-body    { font-family: var(--font-sans);  font-weight: 300; letter-spacing: 0.01em;  line-height: 1.7; }
+.text-label   { font-family: var(--font-sans);  font-weight: 400; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; }
+
+.glass-warm   { background: rgba(247,244,239,0.7);  backdrop-filter: blur(20px); border: 1px solid rgba(200,184,154,0.25); }
+.glass-forest { background: rgba(26,46,40,0.75);    backdrop-filter: blur(20px); border: 1px solid rgba(45,74,62,0.4); }
+.glass-night  { background: rgba(15,28,24,0.85);    backdrop-filter: blur(24px); border: 1px solid rgba(45,74,62,0.3); }
+
+.surface      { background: rgba(250,250,247,0.9); border: 1px solid rgba(200,184,154,0.2); box-shadow: 0 4px 32px rgba(45,74,62,0.08); border-radius: 1.25rem; }
+.surface-dark { background: rgba(26,46,40,0.92);   border: 1px solid rgba(45,74,62,0.5);     box-shadow: 0 4px 32px rgba(0,0,0,0.2);     border-radius: 1.25rem; }
+
+.bg-alpine-fog  { background: radial-gradient(ellipse at 20% 50%, rgba(200,184,154,0.15) 0%, transparent 60%), linear-gradient(160deg, #F7F4EF 0%, #EDE7DC 100%); }
+.bg-alpine-night{ background: radial-gradient(ellipse at 30% 40%, rgba(45,74,62,0.4) 0%, transparent 60%), linear-gradient(180deg, #1A2E28 0%, #0F1C18 100%); }
+
+.fog-layer { position: absolute; inset: 0; background: radial-gradient(ellipse 120% 60% at 50% 100%, rgba(247,244,239,0.6) 0%, transparent 70%); pointer-events: none; }
+.texture-noise { position: absolute; inset: 0; opacity: 0.03; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E"); pointer-events: none; }
+.particles { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.divider   { height: 1px; background: linear-gradient(90deg, transparent, rgba(200,184,154,0.4), transparent); border: none; }
+
+.btn-primary {
+  background: var(--color-forest); color: var(--color-snow);
+  padding: 0.75rem 2rem; border-radius: 100px; border: none;
+  font-family: var(--font-sans); font-weight: 400; font-size: 0.875rem; letter-spacing: 0.04em;
+  transition: all 400ms cubic-bezier(0.16,1,0.3,1); cursor: pointer;
+  box-shadow: 0 4px 20px rgba(45,74,62,0.25);
+}
+.btn-primary:hover { background: var(--color-deep); transform: translateY(-1px); box-shadow: 0 6px 28px rgba(45,74,62,0.35); }
+
+@keyframes fadeUp   { from { opacity:0; transform:translateY(24px) } to { opacity:1; transform:translateY(0) } }
+@keyframes fadeIn   { from { opacity:0 } to { opacity:1 } }
+@keyframes particleFloat {
+  0%   { transform: translateY(100vh); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 0.4; }
+  100% { transform: translateY(-20px) translateX(var(--drift,20px)); opacity: 0; }
+}
+.particle { position:absolute; width:2px; height:2px; background:rgba(200,184,154,0.6); border-radius:50%; animation: particleFloat var(--duration,8s) ease-in-out var(--delay,0s) infinite; }
