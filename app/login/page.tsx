@@ -63,36 +63,37 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[var(--color-linen)] flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
+    <main className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden bg-[var(--color-night)]">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_35%,rgba(151,174,187,0.12),transparent_55%),radial-gradient(ellipse_at_50%_80%,rgba(26,46,40,0.65),rgba(15,28,24,0.98))]" />
+      <div className="relative w-full max-w-md rounded-3xl border border-[rgba(231,223,208,0.14)] bg-[rgba(15,28,24,0.62)] p-8 md:p-10 backdrop-blur-xl">
         {/* Logo */}
-        <div className="text-center mb-10">
-          <h1 className="font-serif text-3xl text-[var(--color-stone-900)] tracking-tight">
+        <div className="text-center mb-12">
+          <h1 className="font-serif italic text-4xl text-[var(--color-linen)] tracking-tight">
             AlpineFlow
           </h1>
-          <p className="text-[var(--color-stone-500)] text-sm mt-1">
+          <p className="text-[rgba(231,223,208,0.55)] text-sm mt-2">
             Sustainable Alpine Hospitality
           </p>
         </div>
 
         {/* Toggle */}
-        <div className="flex rounded-xl bg-[var(--color-stone-100)] p-1 mb-8">
+        <div className="flex rounded-full bg-[rgba(231,223,208,0.08)] p-1 mb-8 border border-[rgba(231,223,208,0.12)]">
           <button
             onClick={() => setMode('guest')}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ${
+            className={`flex-1 py-2 rounded-full text-xs tracking-[0.08em] uppercase transition-all duration-[var(--duration-cinematic)] ease-[var(--ease-cinematic)] ${
               mode === 'guest'
-                ? 'bg-white text-[var(--color-stone-900)] shadow-sm'
-                : 'text-[var(--color-stone-500)] hover:text-[var(--color-stone-700)]'
+                ? 'bg-[rgba(231,223,208,0.2)] text-[var(--color-linen)]'
+                : 'text-[rgba(231,223,208,0.45)] hover:text-[rgba(231,223,208,0.72)]'
             }`}
           >
             Guest
           </button>
           <button
             onClick={() => setMode('staff')}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ${
+            className={`flex-1 py-2 rounded-full text-xs tracking-[0.08em] uppercase transition-all duration-[var(--duration-cinematic)] ease-[var(--ease-cinematic)] ${
               mode === 'staff'
-                ? 'bg-white text-[var(--color-stone-900)] shadow-sm'
-                : 'text-[var(--color-stone-500)] hover:text-[var(--color-stone-700)]'
+                ? 'bg-[rgba(231,223,208,0.2)] text-[var(--color-linen)]'
+                : 'text-[rgba(231,223,208,0.45)] hover:text-[rgba(231,223,208,0.72)]'
             }`}
           >
             Hotel Staff
@@ -101,20 +102,20 @@ export default function LoginPage() {
 
         {/* Guest Login */}
         {mode === 'guest' && (
-          <form onSubmit={handleGuestLogin} className="space-y-4">
+          <form onSubmit={handleGuestLogin} className="space-y-6">
             <div>
-              <label className="block text-sm text-[var(--color-stone-600)] mb-2">
+              <label className="block text-sm text-[rgba(231,223,208,0.72)] mb-3 text-center">
                 Your stay code
               </label>
               <input
                 type="text"
                 value={guestCode}
                 onChange={e => setGuestCode(e.target.value)}
-                placeholder="e.g. ALPIN-2847"
-                className="w-full px-4 py-3 rounded-xl border border-[var(--color-stone-200)] bg-white text-[var(--color-stone-900)] placeholder:text-[var(--color-stone-400)] focus:outline-none focus:ring-2 focus:ring-[var(--color-moss)] text-center tracking-widest text-lg font-mono uppercase"
+                placeholder="ALPIN-XXXX"
+                className="w-full px-6 py-5 rounded-2xl border border-[rgba(151,174,187,0.34)] bg-[rgba(15,28,24,0.8)] text-[var(--color-linen)] placeholder:text-[rgba(231,223,208,0.45)] focus:outline-none focus:ring-2 focus:ring-[var(--color-glacier)] text-center tracking-[0.22em] text-2xl font-mono uppercase"
                 required
               />
-              <p className="text-xs text-[var(--color-stone-400)] mt-2 text-center">
+              <p className="text-xs text-[rgba(231,223,208,0.45)] mt-3 text-center">
                 You received this code from your hotel at check-in.
               </p>
             </div>
@@ -124,7 +125,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={guestLoading}
-              className="w-full py-3 rounded-xl bg-[var(--color-moss)] text-white font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
+              className="w-full py-3.5 rounded-xl bg-[var(--color-moss)] text-[var(--color-linen)] font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               {guestLoading ? 'Checking...' : 'Enter my stay →'}
             </button>
@@ -133,9 +134,9 @@ export default function LoginPage() {
 
         {/* Staff Login */}
         {mode === 'staff' && (
-          <form onSubmit={handleStaffLogin} className="space-y-4">
+          <form onSubmit={handleStaffLogin} className="space-y-6">
             <div>
-              <label className="block text-sm text-[var(--color-stone-600)] mb-2">
+              <label className="block text-sm text-[rgba(231,223,208,0.72)] mb-2">
                 Email
               </label>
               <input
@@ -143,12 +144,12 @@ export default function LoginPage() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="staff@hotel.com"
-                className="w-full px-4 py-3 rounded-xl border border-[var(--color-stone-200)] bg-white text-[var(--color-stone-900)] placeholder:text-[var(--color-stone-400)] focus:outline-none focus:ring-2 focus:ring-[var(--color-moss)]"
+                className="w-full px-4 py-3 rounded-xl border border-[rgba(231,223,208,0.24)] bg-[rgba(15,28,24,0.72)] text-[var(--color-linen)] placeholder:text-[rgba(231,223,208,0.45)] focus:outline-none focus:ring-2 focus:ring-[var(--color-glacier)]"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm text-[var(--color-stone-600)] mb-2">
+              <label className="block text-sm text-[rgba(231,223,208,0.72)] mb-2">
                 Password
               </label>
               <input
@@ -156,7 +157,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-4 py-3 rounded-xl border border-[var(--color-stone-200)] bg-white text-[var(--color-stone-900)] placeholder:text-[var(--color-stone-400)] focus:outline-none focus:ring-2 focus:ring-[var(--color-moss)]"
+                className="w-full px-4 py-3 rounded-xl border border-[rgba(231,223,208,0.24)] bg-[rgba(15,28,24,0.72)] text-[var(--color-linen)] placeholder:text-[rgba(231,223,208,0.45)] focus:outline-none focus:ring-2 focus:ring-[var(--color-glacier)]"
                 required
               />
             </div>
@@ -166,7 +167,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={staffLoading}
-              className="w-full py-3 rounded-xl bg-[var(--color-stone-900)] text-white font-medium text-sm hover:bg-[var(--color-stone-700)] transition-colors disabled:opacity-50"
+              className="w-full py-3 rounded-xl bg-[var(--color-stone-800)] text-[var(--color-linen)] font-medium text-sm hover:bg-[var(--color-stone-700)] transition-colors disabled:opacity-50"
             >
               {staffLoading ? 'Signing in...' : 'Sign in to dashboard →'}
             </button>

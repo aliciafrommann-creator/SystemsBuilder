@@ -2,22 +2,40 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap');
 
 :root {
-  --font-serif: 'Cormorant Garamond', Georgia, serif;
-  --font-sans:  'Inter', system-ui, sans-serif;
-  --color-fog:    #F7F4EF;
-  --color-linen:  #EDE7DC;
-  --color-stone:  #C8B89A;
-  --color-bark:   #9B7D5E;
-  --color-earth:  #6B5240;
-  --color-forest: #2D4A3E;
-  --color-deep:   #1A2E28;
-  --color-night:  #0F1C18;
-  --color-snow:   #FAFAF7;
-  --color-gold:   #C9A96E;
-  --transition-alpine: cubic-bezier(0.16, 1, 0.3, 1);
+  --font-ui: 'Geist', system-ui, sans-serif;
+  --font-editorial: 'Instrument Serif', Georgia, serif;
+  --font-serif: var(--font-editorial);
+  --font-sans: var(--font-ui);
+
+  --color-linen: #e7dfd0;
+  --color-fog: #f3f0e8;
+  --color-stone-100: #f5f1e8;
+  --color-stone-200: #e8dfcf;
+  --color-stone-300: #d5c6ac;
+  --color-stone-400: #c0ac8e;
+  --color-stone-500: #a89373;
+  --color-stone-600: #8d785d;
+  --color-stone-700: #6f5e4a;
+  --color-stone-800: #534739;
+  --color-stone-900: #3d342a;
+  --color-stone: var(--color-stone-400);
+  --color-bark: var(--color-stone-600);
+  --color-earth: var(--color-stone-700);
+  --color-moss: #4f6650;
+  --color-glacier: #97aebb;
+  --color-ember: #c6784d;
+  --color-forest: #2d4a3e;
+  --color-deep: #1a2e28;
+  --color-night: #0f1c18;
+  --color-snow: #fafaf7;
+  --color-gold: #c9a96e;
+
+  --duration-cinematic: 640ms;
+  --ease-cinematic: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --transition-alpine: var(--ease-cinematic);
 }
 
 * { box-sizing: border-box; padding: 0; margin: 0; }
@@ -62,7 +80,7 @@ body {
   background: var(--color-forest); color: var(--color-snow);
   padding: 0.75rem 2rem; border-radius: 100px; border: none;
   font-family: var(--font-sans); font-weight: 400; font-size: 0.875rem; letter-spacing: 0.04em;
-  transition: all 400ms cubic-bezier(0.16,1,0.3,1); cursor: pointer;
+  transition: all var(--duration-cinematic) var(--ease-cinematic); cursor: pointer;
   box-shadow: 0 4px 20px rgba(45,74,62,0.25);
 }
 .btn-primary:hover { background: var(--color-deep); transform: translateY(-1px); box-shadow: 0 6px 28px rgba(45,74,62,0.35); }

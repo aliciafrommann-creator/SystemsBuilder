@@ -1,0 +1,16 @@
+<svg width="1600" height="1000" viewBox="0 0 1600 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="bg" x1="800" y1="0" x2="800" y2="1000" gradientUnits="userSpaceOnUse">
+<stop stop-color="#8EA494"/>
+<stop offset="1" stop-color="#2D4A3E"/>
+</linearGradient>
+<radialGradient id="mist" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(800 620) rotate(90) scale(320 860)">
+<stop stop-color="#E7DFD0" stop-opacity="0.45"/>
+<stop offset="1" stop-color="#E7DFD0" stop-opacity="0"/>
+</radialGradient>
+</defs>
+<rect width="1600" height="1000" fill="url(#bg)"/>
+<path d="M0 670L260 540L470 640L720 490L980 610L1240 500L1600 660V1000H0V670Z" fill="#3D5A4A"/>
+<path d="M0 760L210 680L470 760L760 620L1030 750L1310 680L1600 760V1000H0V760Z" fill="#1F332B"/>
+<rect width="1600" height="1000" fill="url(#mist)"/>
+</svg>

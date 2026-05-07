@@ -1,0 +1,12 @@
+<svg width="1600" height="1000" viewBox="0 0 1600 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="bg" x1="800" y1="0" x2="800" y2="1000" gradientUnits="userSpaceOnUse">
+<stop stop-color="#9FBFC1"/>
+<stop offset="1" stop-color="#365965"/>
+</linearGradient>
+</defs>
+<rect width="1600" height="1000" fill="url(#bg)"/>
+<ellipse cx="800" cy="760" rx="760" ry="220" fill="#6A8E97"/>
+<path d="M0 740C250 690 440 810 760 760C1080 710 1300 790 1600 740V1000H0V740Z" fill="#2A4953"/>
+<path d="M0 820C250 780 450 880 760 840C1080 800 1300 870 1600 830V1000H0V820Z" fill="#17363E"/>
+</svg>
