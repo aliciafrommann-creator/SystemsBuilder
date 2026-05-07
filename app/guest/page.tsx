@@ -1,178 +1,78 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 
-type StayMode = {
-  id: 'eco' | 'quiet' | 'wellness' | 'explorer' | 'deep-rest' | 'alpine-reset'
-  name: string
-  line: string
-  route: string
-  image: string
-}
-
-const STAY_MODES: StayMode[] = [
-  {
-    id: 'eco',
-    name: 'Eco Stay',
-    line: 'Wake with mountain air and leave only soft traces.',
-    route: '/guest/sustainability',
-    image:
-      "linear-gradient(180deg, rgba(10,16,14,0.18) 0%, rgba(10,16,14,0.72) 100%), url('/images/modes/eco-stay.svg')",
-  },
-  {
-    id: 'quiet',
-    name: 'Quiet Stay',
-    line: 'Silence, warmth, and deep alpine stillness.',
-    route: '/guest/housekeeping',
-    image:
-      "linear-gradient(180deg, rgba(10,16,14,0.16) 0%, rgba(10,16,14,0.72) 100%), url('/images/modes/quiet-stay.svg')",
-  },
-  {
-    id: 'wellness',
-    name: 'Wellness Stay',
-    line: 'Water, breath, and movement tuned to your rhythm.',
-    route: '/guest/wellness',
-    image:
-      "linear-gradient(180deg, rgba(10,16,14,0.18) 0%, rgba(10,16,14,0.72) 100%), url('/images/modes/wellness-stay.svg')",
-  },
-  {
-    id: 'explorer',
-    name: 'Explorer Stay',
-    line: 'Follow forest paths into living alpine stories.',
-    route: '/guest/discovery',
-    image:
-      "linear-gradient(180deg, rgba(10,16,14,0.16) 0%, rgba(10,16,14,0.72) 100%), url('/images/modes/explorer-stay.svg')",
-  },
-  {
-    id: 'deep-rest',
-    name: 'Deep Rest',
-    line: 'Slow down completely and let the mountain hold you.',
-    route: '/guest/housekeeping',
-    image:
-      "linear-gradient(180deg, rgba(10,16,14,0.16) 0%, rgba(10,16,14,0.74) 100%), url('/images/modes/deep-rest.svg')",
-  },
-  {
-    id: 'alpine-reset',
-    name: 'Alpine Reset',
-    line: 'Cold peaks, warm light, and a full renewal cycle.',
-    route: '/guest/discovery',
-    image:
-      "linear-gradient(180deg, rgba(10,16,14,0.16) 0%, rgba(10,16,14,0.7) 100%), url('/images/modes/alpine-reset.svg')",
-  },
+const STAY_MODES = [
+  { id: 'eco',         name: 'Eco Stay',      subtitle: 'Light touch on the earth',      color: '#2D4A3E', accent: 'rgba(74,103,65,0.8)',   bg: 'linear-gradient(135deg, #1A2E28 0%, #2D4A3E 100%)', icon: '◇', description: 'Minimal footprint, maximum connection to nature.' },
+  { id: 'quiet',       name: 'Quiet Stay',    subtitle: 'Deep rest, undisturbed',        color: '#2A3040', accent: 'rgba(100,116,139,0.8)', bg: 'linear-gradient(135deg, #1E2638 0%, #2A3040 100%)', icon: '◎', description: 'Privacy, silence, and complete restoration.' },
+  { id: 'wellness',    name: 'Wellness Stay', subtitle: 'Renew body and mind',           color: '#3D2E28', accent: 'rgba(201,169,110,0.8)', bg: 'linear-gradient(135deg, #2C1E18 0%, #3D2E28 100%)', icon: '◠', description: 'Spa access, movement, and nourishment aligned.' },
+  { id: 'explorer',    name: 'Explorer Stay', subtitle: 'Discover the region',           color: '#2D3A28', accent: 'rgba(164,183,104,0.8)', bg: 'linear-gradient(135deg, #1E2C18 0%, #2D3A28 100%)', icon: '◈', description: 'Guided by local wisdom, off the beaten path.' },
+  { id: 'deep-rest',   name: 'Deep Rest',     subtitle: 'Nothing is required of you',   color: '#302838', accent: 'rgba(139,116,160,0.8)', bg: 'linear-gradient(135deg, #221830 0%, #302838 100%)', icon: '◡', description: 'Maximum comfort, zero decisions, pure presence.' },
+  { id: 'alpine-reset',name: 'Alpine Reset',  subtitle: 'The full mountain experience', color: '#283040', accent: 'rgba(123,163,168,0.8)', bg: 'linear-gradient(135deg, #18222E 0%, #283040 100%)', icon: '◯', description: 'Cold air, warm fires, and the rhythm of the mountain.' },
 ]
 
 export default function GuestHub() {
-  const router = useRouter()
-  const [activeMode, setActiveMode] = useState<StayMode['id'] | null>(null)
-  const [transitioning, setTransitioning] = useState(false)
-
-  const selected = useMemo(
-    () => STAY_MODES.find((mode) => mode.id === activeMode) ?? null,
-    [activeMode]
-  )
-
-  const enterMode = (mode: StayMode) => {
-    sessionStorage.setItem('alpineflow_mode', mode.id)
-    sessionStorage.setItem('alpineflow_mode_name', mode.name)
-    setTransitioning(true)
-    window.setTimeout(() => {
-      router.push(mode.route)
-    }, 420)
-  }
+  const [activeMode, setActiveMode] = useState<string | null>(null)
+  const [loaded, setLoaded] = useState(false)
+  useEffect(() => { const t = setTimeout(() => setLoaded(true), 80); return () => clearTimeout(t) }, [])
+  const selected = STAY_MODES.find(m => m.id === activeMode)
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[var(--color-fog)]">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(151,174,187,0.26),transparent_60%),linear-gradient(180deg,var(--color-fog)_0%,var(--color-linen)_65%,var(--color-fog)_100%)]" />
-
-      <header className="relative z-10 flex items-center justify-between px-8 py-8 md:px-12">
-        <Link
-          href="/"
-          className="text-[var(--color-deep)] no-underline"
-          style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: '1.4rem' }}
-        >
-          AlpineFlow
-        </Link>
-        <p className="text-[var(--color-earth)] text-xs tracking-[0.14em] uppercase">Choose your stay mode</p>
+    <main style={{ minHeight: '100vh', background: selected ? selected.bg : 'linear-gradient(160deg, #F7F4EF 0%, #EDE7DC 100%)', transition: 'background 1.2s cubic-bezier(0.16,1,0.3,1)' }}>
+      <header style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'1.5rem', borderBottom: selected ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(200,184,154,0.2)' }}>
+        <Link href="/"><span style={{ fontFamily:'var(--font-serif)', fontWeight:300, fontSize:'1.25rem', color: selected ? 'rgba(250,250,247,0.8)' : 'var(--color-deep)', cursor:'pointer', transition:'color 1s ease' }}>AlpineFlow</span></Link>
+        <nav style={{ display:'flex', gap:'1.5rem' }}>
+          {[{l:'Stay',h:'/guest'},{l:'Wellness',h:'/guest/wellness'},{l:'Discover',h:'/guest/discovery'},{l:'Impact',h:'/guest/sustainability'}].map(n=>(
+            <Link key={n.l} href={n.h}><span className="text-label" style={{ color: selected ? 'rgba(237,231,220,0.55)' : 'var(--color-bark)', transition:'color 1s ease', fontSize:'0.72rem', cursor:'pointer' }}>{n.l}</span></Link>
+          ))}
+        </nav>
       </header>
 
-      <section className="relative z-10 px-8 pb-16 pt-8 md:px-12">
-        <h1
-          className="max-w-3xl text-[var(--color-deep)]"
-          style={{
-            fontFamily: 'var(--font-serif)',
-            fontStyle: 'italic',
-            fontSize: 'clamp(2.4rem, 5vw, 4.2rem)',
-            lineHeight: 1.08,
-            marginBottom: '48px',
-          }}
-        >
-          Enter the atmosphere that matches your mountain rhythm.
+      <div className="max-w-5xl mx-auto px-6 py-20" style={{ opacity: loaded?1:0, transform: loaded?'none':'translateY(16px)', transition:'all 1s cubic-bezier(0.16,1,0.3,1)' }}>
+        <p className="text-label mb-3" style={{ color: selected ? 'rgba(201,169,110,0.7)' : 'var(--color-stone)', transition:'color 1s ease' }}>Good evening</p>
+        <h1 style={{ fontFamily:'var(--font-serif)', fontWeight:300, fontSize:'clamp(2.5rem,5vw,4rem)', letterSpacing:'-0.025em', lineHeight:1.1, color: selected?'#FAFAF7':'var(--color-deep)', transition:'color 1s ease', marginBottom:'2.5rem' }}>
+          How would you like
+          <br /><em style={{ fontStyle:'italic', color: selected?'rgba(201,169,110,0.9)':'var(--color-forest)' }}>to experience your stay?</em>
         </h1>
 
-        <div className="grid grid-cols-1 gap-6 md:gap-8 md:grid-cols-2 xl:grid-cols-3">
-          {STAY_MODES.map((mode) => {
-            const isActive = activeMode === mode.id
-            return (
-              <button
-                key={mode.id}
-                type="button"
-                onMouseEnter={() => setActiveMode(mode.id)}
-                onFocus={() => setActiveMode(mode.id)}
-                onClick={() => enterMode(mode)}
-                className="group relative min-h-[340px] overflow-hidden rounded-3xl text-left"
-                style={{
-                  backgroundImage: mode.image,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  transform: isActive ? 'translateY(-4px)' : 'translateY(0)',
-                  transition: 'transform var(--duration-cinematic) var(--ease-cinematic), box-shadow var(--duration-cinematic) var(--ease-cinematic)',
-                  boxShadow: isActive ? '0 20px 46px rgba(15,28,24,0.28)' : '0 8px 22px rgba(15,28,24,0.18)',
-                }}
-              >
-                <div className="absolute inset-0 border border-[rgba(231,223,208,0.28)]" />
-                <div className="absolute inset-x-0 bottom-0 p-6">
-                  <p className="mb-2 text-[var(--color-linen)]" style={{ fontFamily: 'var(--font-serif)', fontSize: '1.75rem', fontStyle: 'italic' }}>
-                    {mode.name}
-                  </p>
-                  <p className="text-[rgba(231,223,208,0.82)] text-sm leading-6">{mode.line}</p>
-                  <span
-                    className="mt-5 inline-block text-xs uppercase tracking-[0.12em] text-[rgba(231,223,208,0.74)]"
-                    style={{ transition: 'opacity var(--duration-cinematic) var(--ease-cinematic)' }}
-                  >
-                    Enter mode →
-                  </span>
-                </div>
-              </button>
-            )
-          })}
-        </div>
-
-        <div className="mt-16 flex items-center justify-center">
-          {selected ? (
-            <button
-              type="button"
-              onClick={() => enterMode(selected)}
-              className="rounded-full bg-[var(--color-moss)] px-7 py-3 text-sm uppercase tracking-[0.1em] text-[var(--color-linen)]"
-              style={{ transition: 'opacity var(--duration-cinematic) var(--ease-cinematic)' }}
-            >
-              Continue with {selected.name}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-16">
+          {STAY_MODES.map(mode => (
+            <button key={mode.id} onClick={() => setActiveMode(activeMode===mode.id?null:mode.id)}
+              className="relative text-left overflow-hidden rounded-2xl p-6"
+              style={{ background: activeMode===mode.id ? 'rgba(255,255,255,0.12)' : selected ? 'rgba(255,255,255,0.05)' : 'rgba(250,250,247,0.7)', border: activeMode===mode.id ? `1px solid ${mode.accent}` : selected ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(200,184,154,0.25)', transition:'all 500ms cubic-bezier(0.16,1,0.3,1)', cursor:'pointer', boxShadow: activeMode===mode.id ? '0 8px 40px rgba(0,0,0,0.25)' : 'none' }}>
+              <span style={{ display:'block', fontSize:'1.25rem', marginBottom:'0.75rem', color:mode.accent, transition:'all 400ms ease' }}>{mode.icon}</span>
+              <h3 style={{ fontFamily:'var(--font-serif)', fontWeight:400, fontSize:'1.1rem', color:selected?'#FAFAF7':'var(--color-deep)', marginBottom:'0.25rem', transition:'color 1s ease' }}>{mode.name}</h3>
+              <p style={{ fontSize:'0.78rem', color:selected?'rgba(237,231,220,0.5)':'var(--color-bark)', transition:'color 1s ease' }}>{mode.subtitle}</p>
+              {activeMode===mode.id && <p style={{ fontSize:'0.85rem', color:'rgba(237,231,220,0.7)', lineHeight:1.6, marginTop:'1rem', borderTop:'1px solid rgba(255,255,255,0.1)', paddingTop:'1rem' }}>{mode.description}</p>}
             </button>
-          ) : (
-            <p className="text-[var(--color-earth)] text-sm">Hover any card and step into your stay.</p>
-          )}
+          ))}
         </div>
-      </section>
 
-      <div
-        className="pointer-events-none absolute inset-0 z-20"
-        style={{
-          opacity: transitioning ? 1 : 0,
-          transition: 'opacity var(--duration-cinematic) var(--ease-cinematic)',
-          background: 'rgba(12,20,16,0.74)',
-        }}
-      />
+        {activeMode && (
+          <div className="flex gap-4 mb-16">
+            <button className="btn-primary" style={{ background:selected?.accent.replace('0.8','1')??'var(--color-forest)', fontSize:'0.9rem', padding:'0.875rem 2.5rem' }}>Set {selected?.name}</button>
+            <button onClick={()=>setActiveMode(null)} style={{ background:'transparent', border:'1px solid rgba(255,255,255,0.15)', color:'rgba(237,231,220,0.6)', padding:'0.875rem 1.75rem', borderRadius:100, fontSize:'0.875rem', cursor:'pointer' }}>Clear</button>
+          </div>
+        )}
+
+        <div style={{ borderTop: selected?'1px solid rgba(255,255,255,0.08)':'1px solid rgba(200,184,154,0.2)', paddingTop:'3rem', transition:'border-color 1s ease' }}>
+          <p className="text-label mb-8" style={{ color:selected?'rgba(237,231,220,0.4)':'var(--color-stone)', transition:'color 1s ease' }}>Your stay</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[{l:'Housekeeping',s:'Room preferences',h:'/guest/housekeeping',i:'◊'},{l:'Wellness',s:'Spa & movement',h:'/guest/wellness',i:'○'},{l:'Discover',s:'Local & regional',h:'/guest/discovery',i:'◈'},{l:'Impact',s:'Your footprint',h:'/guest/sustainability',i:'◇'}].map(a=>(
+              <Link key={a.l} href={a.h}>
+                <div className="rounded-xl p-5 cursor-pointer" style={{ background:selected?'rgba(255,255,255,0.05)':'rgba(250,250,247,0.7)', border:selected?'1px solid rgba(255,255,255,0.07)':'1px solid rgba(200,184,154,0.2)', transition:'all 400ms ease' }}
+                  onMouseEnter={e=>{(e.currentTarget as HTMLDivElement).style.transform='translateY(-2px)'}}
+                  onMouseLeave={e=>{(e.currentTarget as HTMLDivElement).style.transform='none'}}>
+                  <p style={{ fontSize:'1rem', marginBottom:'0.5rem', color:selected?'rgba(201,169,110,0.7)':'var(--color-forest)', transition:'color 1s ease' }}>{a.i}</p>
+                  <p style={{ fontWeight:400, fontSize:'0.9rem', color:selected?'#FAFAF7':'var(--color-deep)', marginBottom:'0.2rem', transition:'color 1s ease' }}>{a.l}</p>
+                  <p style={{ fontSize:'0.75rem', color:selected?'rgba(237,231,220,0.4)':'var(--color-bark)', transition:'color 1s ease' }}>{a.s}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
     </main>
   )
 }
