@@ -7,10 +7,10 @@ import { DayPreset } from '@/lib/alpineflow/timeOfDay'
 function sr(s: number) { const v = Math.sin(s * 127.1) * 43758.5453; return v - Math.floor(v) }
 
 export function AlpineWater({ preset }: { preset: DayPreset }) {
-  const matRef = useRef<THREE.MeshStandardMaterial>(null)
+  const matRef       = useRef<THREE.MeshStandardMaterial>(null)
   const highlightRef = useRef<THREE.MeshBasicMaterial>(null)
 
-  const waterColor = preset.uiDark ? '#152638' : '#3a7ca8'
+  const waterColor   = preset.uiDark ? '#152638' : '#3a7ca8'
   const reflectColor = preset.uiDark ? '#3a5a80' : '#88c4e8'
 
   useFrame(({ clock }) => {
@@ -26,21 +26,21 @@ export function AlpineWater({ preset }: { preset: DayPreset }) {
 
   const rocks = useMemo(() => [
     [-16, 0, 10], [-12, 0, -7], [-9, 0, 13], [-5, 0, -9],
-    [ 10, 0,  7], [ 7, 0, -11], [15, 0, 4], [-19, 0, 1],
-    [-14, 0, 5], [11, 0, -4],
+    [ 10, 0,  7], [  7, 0,-11], [15, 0,  4], [-19, 0, 1],
+    [-14, 0,  5], [ 11, 0, -4],
   ], [])
 
   return (
-    // Lake sits to the left of the camera path, visible from aerial and from ground
+    // Lake sits to the left of the camera path — visible from aerial and ground approach
     <group position={[-44, -2.3, 22]} rotation={[0, 0.35, 0]}>
 
-      {/* Lake bed (slightly below surface) */}
+      {/* Lake bed */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.15, 0]} receiveShadow>
-        <circleGeometry args={[22, 56]} />
+        <circleGeometry args={[24, 56]} />
         <meshLambertMaterial color="#8a7868" />
       </mesh>
 
-      {/* Lake surface — scale X for an oval shape */}
+      {/* Lake surface — oval via parent scale */}
       <group scale={[1.55, 1, 1]}>
         <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
           <circleGeometry args={[18, 56]} />
@@ -57,11 +57,11 @@ export function AlpineWater({ preset }: { preset: DayPreset }) {
         </mesh>
       </group>
 
-      {/* Sky reflection highlight */}
+      {/* Sky reflection highlight — oval circle via scale */}
       <group scale={[1.55, 1, 1]}>
-        <mesh rotation={[-Math.PI / 2, 0, 0.2]} position={[3, 0.01, -2]}>
-          <ellipseGeometry args={[7, 3.5, 24]} />
-          <meshBasicMaterial ref={highlightRef} color={reflectColor} transparent opacity={0.28} />
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[2.5, 0.01, -2]}>
+          <circleGeometry args={[6, 28]} />
+          <meshBasicMaterial ref={highlightRef} color={reflectColor} transparent opacity={0.26} />
         </mesh>
       </group>
 
@@ -78,10 +78,10 @@ export function AlpineWater({ preset }: { preset: DayPreset }) {
         </mesh>
       ))}
 
-      {/* Distant mountain reflection (dark strip at far shore) */}
+      {/* Far shore shadow strip (simulates mountain reflection) */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, -14]}>
-        <planeGeometry args={[28, 4]} />
-        <meshBasicMaterial color={preset.uiDark ? '#0a1820' : '#2a5878'} transparent opacity={0.22} />
+        <planeGeometry args={[30, 5]} />
+        <meshBasicMaterial color={preset.uiDark ? '#0a1820' : '#2a5878'} transparent opacity={0.2} />
       </mesh>
 
     </group>
