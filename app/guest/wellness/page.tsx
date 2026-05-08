@@ -1,6 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
+import { useStay } from '@/lib/alpineflow/stay-context'
 
 const IMG = (id: string, w = 800) =>
   `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=80`
@@ -42,6 +44,7 @@ type Session = typeof CATS[0]['sessions'][0]
 type Cat = typeof CATS[0]
 
 export default function WellnessPage() {
+  const { stay } = useStay()
   const [cat, setCat]         = useState('spa')
   const [booking, setBooking] = useState<{ session: Session; cat: Cat } | null>(null)
   const [payStep, setPayStep] = useState<'choose' | 'processing' | 'done'>('choose')
@@ -57,10 +60,19 @@ export default function WellnessPage() {
 
   const handlePay = async (method: 'online' | 'room') => {
     setPayStep('processing')
-    await new Promise(r => setTimeout(r, 1400))
-    if (method === 'online') {
-      // Production: POST /api/checkout then redirect to Stripe session.url
+    if (stay && booking) {
+      await supabase.from('bookings').insert({
+        stay_id: stay.id,
+        hotel_id: stay.hotel_id,
+        session_label: booking.session.label,
+        session_time: booking.session.time,
+        duration: booking.session.duration,
+        price_cents: booking.session.price * 100,
+        payment_method: method,
+        status: 'confirmed',
+      })
     }
+    await new Promise(r => setTimeout(r, 900))
     setPayStep('done')
   }
 
@@ -73,7 +85,6 @@ export default function WellnessPage() {
         <Link href="/guest"><span style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.7rem', letterSpacing: '0.08em', color: 'var(--color-stone)', cursor: 'pointer' }}>Back to stay</span></Link>
       </header>
 
-      {/* Hero */}
       <div style={{ position: 'relative', height: 320, overflow: 'hidden' }}>
         <img src={current.headerImg} alt={current.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'opacity 0.8s ease' }} key={current.id} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(15,20,18,0.65) 100%)' }} />
@@ -84,8 +95,6 @@ export default function WellnessPage() {
       </div>
 
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '2.5rem 2rem 5rem', opacity: loaded ? 1 : 0, transition: 'opacity 1s ease' }}>
-
-        {/* Category tabs */}
         <div style={{ display: 'flex', gap: 8, marginBottom: '2.5rem', flexWrap: 'wrap' }}>
           {CATS.map(c => (
             <button key={c.id} onClick={() => setCat(c.id)} style={{ background: cat === c.id ? c.color : 'rgba(250,250,247,0.8)', color: cat === c.id ? '#FAFAF7' : 'var(--color-earth)', border: cat === c.id ? `1px solid ${c.color}` : '1px solid rgba(200,184,154,0.28)', padding: '8px 20px', borderRadius: 100, fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.82rem', letterSpacing: '0.02em', cursor: 'pointer', transition: 'all 0.35s cubic-bezier(0.16,1,0.3,1)', boxShadow: cat === c.id ? `0 4px 18px ${c.color}40` : 'none' }}>
@@ -94,7 +103,6 @@ export default function WellnessPage() {
           ))}
         </div>
 
-        {/* Cinematic session cards */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           {current.sessions.map((s) => (
             <div
@@ -104,29 +112,17 @@ export default function WellnessPage() {
               onMouseEnter={e => { if (s.avail) { (e.currentTarget as HTMLDivElement).style.transform = 'scale(1.012)'; (e.currentTarget as HTMLDivElement).style.boxShadow = `0 12px 40px ${current.color}30` } }}
               onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = 'none'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 16px rgba(0,0,0,0.08)' }}
             >
-              {/* Full-bleed photo */}
               <img src={s.img} alt={s.label} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-
-              {/* Gradient overlay */}
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 55%, rgba(0,0,0,0.55) 100%)' }} />
-
-              {/* Left: time + label */}
               <div style={{ position: 'absolute', left: '1.4rem', top: '50%', transform: 'translateY(-50%)' }}>
                 <p style={{ fontFamily: 'var(--font-serif)', fontWeight: 300, fontSize: '0.85rem', color: 'rgba(201,169,110,0.85)', marginBottom: 4, letterSpacing: '0.04em' }}>{s.time} &middot; {s.duration}</p>
                 <h3 style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, fontSize: '1.15rem', color: '#FAFAF7', marginBottom: 5, lineHeight: 1.2 }}>{s.label}</h3>
                 <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.72rem', color: 'rgba(237,231,220,0.6)', lineHeight: 1.5, maxWidth: '38ch' }}>{s.desc.split('.')[0]}.</p>
               </div>
-
-              {/* Right: price + book */}
               <div style={{ position: 'absolute', right: '1.4rem', top: '50%', transform: 'translateY(-50%)', textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 10 }}>
                 <span style={{ fontFamily: 'var(--font-serif)', fontWeight: 300, fontSize: '1.5rem', color: '#FAFAF7', lineHeight: 1 }}>€{s.price}</span>
                 {s.avail ? (
-                  <button
-                    onClick={e => { e.stopPropagation(); openBooking(s) }}
-                    style={{ background: current.color, color: '#FAFAF7', borderRadius: 100, padding: '7px 20px', fontSize: '0.75rem', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)', fontWeight: 300, letterSpacing: '0.05em', boxShadow: `0 4px 16px ${current.color}50`, whiteSpace: 'nowrap' }}
-                  >
-                    Book
-                  </button>
+                  <button onClick={e => { e.stopPropagation(); openBooking(s) }} style={{ background: current.color, color: '#FAFAF7', borderRadius: 100, padding: '7px 20px', fontSize: '0.75rem', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)', fontWeight: 300, letterSpacing: '0.05em', boxShadow: `0 4px 16px ${current.color}50`, whiteSpace: 'nowrap' }}>Book</button>
                 ) : (
                   <span style={{ fontSize: '0.72rem', color: 'rgba(237,231,220,0.5)', fontFamily: 'var(--font-sans)' }}>Full today</span>
                 )}
@@ -136,20 +132,14 @@ export default function WellnessPage() {
         </div>
       </div>
 
-      {/* Booking modal */}
       {booking && (
         <div onClick={e => { if (e.target === e.currentTarget) setBooking(null) }} style={{ position: 'fixed', inset: 0, background: 'rgba(10,12,10,0.72)', backdropFilter: 'blur(10px)', zIndex: 50, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
           <div style={{ width: '100%', maxWidth: 560, borderRadius: '22px 22px 0 0', background: '#FAFAF7', overflow: 'hidden', boxShadow: '0 -12px 60px rgba(0,0,0,0.28)' }}>
 
             {payStep === 'choose' && (
               <>
-                {/* Immersive photo hero */}
                 <div style={{ position: 'relative', height: 210, overflow: 'hidden' }}>
-                  <img
-                    src={booking.session.img}
-                    alt={booking.session.label}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', animation: 'kenBurns 9s ease-in-out infinite alternate' }}
-                  />
+                  <img src={booking.session.img} alt={booking.session.label} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', animation: 'kenBurns 9s ease-in-out infinite alternate' }} />
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.08) 30%, rgba(0,0,0,0.68) 100%)' }} />
                   <div style={{ position: 'absolute', bottom: '1.4rem', left: '1.5rem', right: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                     <div>
@@ -163,8 +153,6 @@ export default function WellnessPage() {
                     </div>
                   </div>
                 </div>
-
-                {/* Session description + payment options */}
                 <div style={{ padding: '1.5rem 1.75rem 1.75rem' }}>
                   <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.85rem', color: 'var(--color-earth)', lineHeight: 1.65, marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid rgba(200,184,154,0.2)' }}>{booking.session.desc}</p>
                   <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.72rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--color-stone)', marginBottom: '0.875rem' }}>How would you like to pay?</p>
@@ -179,7 +167,7 @@ export default function WellnessPage() {
                     <button onClick={() => handlePay('room')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.25rem', borderRadius: 14, background: 'rgba(250,248,244,0.9)', border: '1px solid rgba(200,184,154,0.28)', cursor: 'pointer' }}>
                       <div style={{ textAlign: 'left' }}>
                         <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 400, fontSize: '0.88rem', color: 'var(--color-deep)', marginBottom: 2 }}>Charge to room bill</p>
-                        <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.72rem', color: 'var(--color-stone)' }}>Room 214 &middot; settle at checkout</p>
+                        <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.72rem', color: 'var(--color-stone)' }}>Room 201 &middot; settle at checkout</p>
                       </div>
                       <span style={{ color: 'var(--color-stone)', fontSize: '1.1rem' }}>&#8594;</span>
                     </button>

@@ -3,7 +3,7 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from '
 import { supabase, type Hotel, type Stay } from '@/lib/supabase'
 
 const DEMO_STAY: Stay = {
-  id: 'a1b2c3d4-0000-0000-0000-000000000001',
+  id: 'b5f8994f-f02d-48ef-abba-63138e6e9ef4',
   code: 'ALPIN-2847',
   hotel_id: 'hotel-demo',
   room_number: '201',

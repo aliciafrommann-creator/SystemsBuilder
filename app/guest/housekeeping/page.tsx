@@ -1,6 +1,8 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
+import { useStay } from '@/lib/alpineflow/stay-context'
 
 type Mode = 'refresh' | 'quiet' | 'full' | 'alpine' | null
 type ZoneId = 'bed' | 'towels' | 'window' | 'minibar' | 'bath'
@@ -22,7 +24,6 @@ const ZONES: Record<ZoneId, { label: string; options: string[]; desc: string }> 
   bath:    { label: 'Bathroom',   options: ['Full clean', 'Light clean', 'Skip today'],                           desc: 'Natural alpine-herb cleaning products.' },
 }
 
-// Floating pill positions over the room photo
 const ZONE_POS: Record<ZoneId, React.CSSProperties> = {
   window:  { top: '6%',    right: '9%'  },
   bed:     { top: '40%',   left: '42%', transform: 'translateX(-50%)' },
@@ -32,6 +33,7 @@ const ZONE_POS: Record<ZoneId, React.CSSProperties> = {
 }
 
 export default function HousekeepingPage() {
+  const { stay } = useStay()
   const [mode, setMode]             = useState<Mode>(null)
   const [activeZone, setActiveZone] = useState<ZoneId | null>(null)
   const [choices, setChoices]       = useState<Partial<Record<ZoneId, string>>>({})
@@ -55,6 +57,19 @@ export default function HousekeepingPage() {
     setActiveZone(null)
   }
 
+  const handleConfirm = async () => {
+    setConfirmed(true)
+    if (stay) {
+      supabase.from('requests').insert({
+        stay_id: stay.id,
+        hotel_id: stay.hotel_id,
+        type: 'housekeeping',
+        payload: { mode, choices, room: stay.room_number, guest: stay.guest_name },
+        status: 'pending',
+      }).then(() => {})
+    }
+  }
+
   const zoneIds = Object.keys(ZONES) as ZoneId[]
 
   return (
@@ -66,13 +81,12 @@ export default function HousekeepingPage() {
 
       <div style={{ maxWidth: 980, margin: '0 auto', padding: '3.5rem 2rem 5rem', opacity: loaded ? 1 : 0, transform: loaded ? 'none' : 'translateY(18px)', transition: 'all 1s cubic-bezier(0.16,1,0.3,1)' }}>
 
-        <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.72rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--color-stone)', marginBottom: '0.8rem' }}>Room 214 &middot; Tonight</p>
+        <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.72rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--color-stone)', marginBottom: '0.8rem' }}>Room {stay?.room_number ?? '201'} &middot; Tonight</p>
         <h1 style={{ fontFamily: 'var(--font-serif)', fontWeight: 300, fontSize: 'clamp(2rem,4.5vw,3.4rem)', letterSpacing: '-0.025em', lineHeight: 1.08, color: 'var(--color-deep)', marginBottom: '0.6rem' }}>
           How shall we<br /><em style={{ fontStyle: 'italic', color: modeColor }}>prepare your room?</em>
         </h1>
         <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.95rem', color: 'var(--color-bark)', lineHeight: 1.7, maxWidth: '44ch', marginBottom: '2.5rem' }}>Touch each element in your room to personalise your evening service.</p>
 
-        {/* Mode pills */}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: '3rem' }}>
           {MODES.map(m => (
             <button key={m.id} onClick={() => setMode(mode === m.id ? null : m.id)} style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.8rem', letterSpacing: '0.03em', padding: '8px 18px', borderRadius: 100, cursor: 'pointer', background: mode === m.id ? m.color : 'rgba(250,250,247,0.8)', color: mode === m.id ? '#FAFAF7' : 'var(--color-earth)', border: mode === m.id ? `1px solid ${m.color}` : '1px solid rgba(200,184,154,0.28)', transition: 'all 0.35s cubic-bezier(0.16,1,0.3,1)', boxShadow: mode === m.id ? `0 4px 18px ${m.glow}` : 'none' }}>
@@ -82,65 +96,23 @@ export default function HousekeepingPage() {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem', alignItems: 'start' }}>
-
-          {/* Photo room scene */}
           <div>
             <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.68rem', letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--color-stone)', marginBottom: '1rem' }}>Your room &middot; touch to customise</p>
             <div style={{ position: 'relative', width: '100%', paddingBottom: '70%', borderRadius: 20, overflow: 'hidden', boxShadow: `0 12px 56px ${modeGlow}, 0 4px 20px rgba(0,0,0,0.15)`, transition: 'box-shadow 1s ease' }}>
-
-              {/* Room photo */}
-              <img
-                src={ROOM_PHOTO}
-                alt="Room 214"
-                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-              />
-
-              {/* Atmospheric overlay */}
+              <img src={ROOM_PHOTO} alt="Room" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 30%, rgba(0,0,0,0.42) 100%)', pointerEvents: 'none' }} />
-
-              {/* Mode colour wash */}
               <div style={{ position: 'absolute', inset: 0, background: selectedMode ? selectedMode.light : 'transparent', mixBlendMode: 'overlay', transition: 'background 1.2s ease', pointerEvents: 'none' }} />
-
-              {/* Floating hotspot pills */}
               {zoneIds.map(id => (
-                <div
-                  key={id}
-                  onClick={() => setActiveZone(activeZone === id ? null : id)}
-                  style={{
-                    position: 'absolute',
-                    ...ZONE_POS[id],
-                    cursor: 'pointer',
-                    borderRadius: 100,
-                    padding: '7px 14px 7px 10px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 7,
-                    background: choices[id] ? `${modeColor}e0` : activeZone === id ? 'rgba(252,250,246,0.92)' : 'rgba(10,8,6,0.58)',
-                    backdropFilter: 'blur(14px)',
-                    border: choices[id] ? `1px solid ${modeColor}` : activeZone === id ? `1px solid ${modeColor}70` : '1px solid rgba(255,255,255,0.2)',
-                    boxShadow: activeZone === id ? `0 6px 24px ${modeGlow}, 0 0 0 2px ${modeColor}20` : '0 2px 10px rgba(0,0,0,0.32)',
-                    transition: 'all 0.38s cubic-bezier(0.16,1,0.3,1)',
-                    zIndex: 2,
-                  }}
-                >
-                  <div style={{
-                    width: 7, height: 7, borderRadius: '50%', flexShrink: 0,
-                    background: choices[id] ? '#FAFAF7' : pulse ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.35)',
-                    transform: pulse && !choices[id] ? 'scale(1.45)' : 'scale(1)',
-                    transition: 'background 0.5s ease, transform 0.5s ease',
-                    boxShadow: choices[id] ? 'none' : pulse ? '0 0 6px rgba(255,255,255,0.6)' : 'none',
-                  }} />
+                <div key={id} onClick={() => setActiveZone(activeZone === id ? null : id)} style={{ position: 'absolute', ...ZONE_POS[id], cursor: 'pointer', borderRadius: 100, padding: '7px 14px 7px 10px', display: 'flex', alignItems: 'center', gap: 7, background: choices[id] ? `${modeColor}e0` : activeZone === id ? 'rgba(252,250,246,0.92)' : 'rgba(10,8,6,0.58)', backdropFilter: 'blur(14px)', border: choices[id] ? `1px solid ${modeColor}` : activeZone === id ? `1px solid ${modeColor}70` : '1px solid rgba(255,255,255,0.2)', boxShadow: activeZone === id ? `0 6px 24px ${modeGlow}, 0 0 0 2px ${modeColor}20` : '0 2px 10px rgba(0,0,0,0.32)', transition: 'all 0.38s cubic-bezier(0.16,1,0.3,1)', zIndex: 2 }}>
+                  <div style={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, background: choices[id] ? '#FAFAF7' : pulse ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.35)', transform: pulse && !choices[id] ? 'scale(1.45)' : 'scale(1)', transition: 'background 0.5s ease, transform 0.5s ease', boxShadow: choices[id] ? 'none' : pulse ? '0 0 6px rgba(255,255,255,0.6)' : 'none' }} />
                   <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.72rem', letterSpacing: '0.04em', color: choices[id] ? '#FAFAF7' : activeZone === id ? modeColor : 'rgba(237,231,220,0.9)', whiteSpace: 'nowrap' }}>
                     {choices[id] ? `${ZONES[id].label} ✓` : ZONES[id].label}
                   </span>
                 </div>
               ))}
-
-              {/* Room label */}
-              <div style={{ position: 'absolute', bottom: 14, left: 16, fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.62rem', letterSpacing: '0.14em', color: 'rgba(237,231,220,0.5)', textTransform: 'uppercase' }}>Room 214 &middot; Berghotel Sonnwend</div>
+              <div style={{ position: 'absolute', bottom: 14, left: 16, fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.62rem', letterSpacing: '0.14em', color: 'rgba(237,231,220,0.5)', textTransform: 'uppercase' }}>Room {stay?.room_number ?? '201'} &middot; Berghotel Sonnwend</div>
             </div>
 
-            {/* Zone option drawer */}
             {activeZone && (
               <div style={{ marginTop: '1rem', borderRadius: 16, background: 'rgba(250,248,244,0.96)', border: `1px solid ${modeColor}28`, padding: '1.4rem', backdropFilter: 'blur(20px)', boxShadow: `0 8px 32px ${modeGlow}` }}>
                 <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.68rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: modeColor, marginBottom: 6 }}>{ZONES[activeZone].label}</p>
@@ -156,9 +128,7 @@ export default function HousekeepingPage() {
             )}
           </div>
 
-          {/* Right: impact + confirm */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-
             {selectedMode && (
               <div style={{ borderRadius: 18, padding: '1.8rem', background: `linear-gradient(135deg, ${selectedMode.color}14 0%, ${selectedMode.color}06 100%)`, border: `1px solid ${selectedMode.color}28`, transition: 'all 0.8s cubic-bezier(0.16,1,0.3,1)' }}>
                 <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.68rem', letterSpacing: '0.16em', textTransform: 'uppercase', color: modeColor, marginBottom: '1rem' }}>Tonight&apos;s impact</p>
@@ -187,7 +157,7 @@ export default function HousekeepingPage() {
             )}
 
             {!confirmed ? (
-              <button onClick={() => setConfirmed(true)} disabled={!mode} style={{ background: mode ? modeColor : 'rgba(200,190,180,0.4)', color: mode ? '#FAFAF7' : 'rgba(150,140,130,0.6)', border: 'none', borderRadius: 100, padding: '12px 28px', fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.88rem', letterSpacing: '0.05em', cursor: mode ? 'pointer' : 'not-allowed', transition: 'all 0.4s ease', boxShadow: mode ? `0 6px 24px ${modeGlow}` : 'none' }}>
+              <button onClick={handleConfirm} disabled={!mode} style={{ background: mode ? modeColor : 'rgba(200,190,180,0.4)', color: mode ? '#FAFAF7' : 'rgba(150,140,130,0.6)', border: 'none', borderRadius: 100, padding: '12px 28px', fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.88rem', letterSpacing: '0.05em', cursor: mode ? 'pointer' : 'not-allowed', transition: 'all 0.4s ease', boxShadow: mode ? `0 6px 24px ${modeGlow}` : 'none' }}>
                 {mode ? `Confirm ${selectedMode?.name}` : 'Choose a mode first'}
               </button>
             ) : (

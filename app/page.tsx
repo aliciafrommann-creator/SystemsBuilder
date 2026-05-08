@@ -28,10 +28,10 @@ export default function AlpineFlowLobby() {
   }, [])
 
   return (
-    <main style={{ position: 'relative', height: '500vh', width: '100%', overflowX: 'hidden' }}>
+    <main style={{ position: 'relative', height: '100vh', width: '100%', overflow: 'hidden' }}>
 
-      {/* Sticky 3D Canvas */}
-      <div style={{ position: 'sticky', top: 0, height: '100vh', width: '100%', zIndex: 1 }}>
+      {/* 3D Canvas fills the viewport */}
+      <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
         <AlpineCanvas />
       </div>
 
@@ -72,16 +72,6 @@ export default function AlpineFlowLobby() {
         </nav>
       </header>
 
-      {/* Scroll hint */}
-      <div style={{
-        position: 'fixed', bottom: '2rem', left: '50%', transform: 'translateX(-50%)',
-        zIndex: 100, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem',
-        opacity: loaded ? 0.5 : 0, transition: 'opacity 2s ease 1.5s', pointerEvents: 'none',
-      }}>
-        <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: preset.uiDark ? 'rgba(237,231,220,0.6)' : 'rgba(45,74,62,0.5)' }}>Scroll to explore</p>
-        <div style={{ width: 1, height: 40, background: preset.uiDark ? 'linear-gradient(to bottom, rgba(201,169,110,0.6), transparent)' : 'linear-gradient(to bottom, rgba(45,74,62,0.4), transparent)' }} />
-      </div>
-
       {/* Time of day badge */}
       <div style={{
         position: 'fixed', top: '1.5rem', left: '50%', transform: 'translateX(-50%)',
@@ -101,6 +91,39 @@ export default function AlpineFlowLobby() {
           </span>
         </div>
       </div>
+
+      {/* Demo CTA — bottom center */}
+      <div style={{
+        position: 'fixed', bottom: '2.5rem', left: '50%', transform: 'translateX(-50%)',
+        zIndex: 100, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem',
+        opacity: loaded ? 1 : 0, transition: 'opacity 2s ease 1.8s',
+      }}>
+        <Link href="/guest?demo=true">
+          <button style={{
+            padding: '13px 32px', borderRadius: 100,
+            background: preset.uiDark ? 'rgba(45,74,62,0.85)' : 'rgba(45,74,62,0.9)',
+            border: '1px solid rgba(201,169,110,0.35)',
+            color: '#FAFAF7',
+            fontFamily: 'var(--font-sans)', fontWeight: 300,
+            fontSize: '0.88rem', letterSpacing: '0.08em',
+            cursor: 'pointer',
+            backdropFilter: 'blur(20px)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px rgba(201,169,110,0.15)',
+            transition: 'all 0.3s ease',
+          }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#2D4A3E'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 12px 40px rgba(45,74,62,0.6), 0 0 0 1px rgba(201,169,110,0.25)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = preset.uiDark ? 'rgba(45,74,62,0.85)' : 'rgba(45,74,62,0.9)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px rgba(201,169,110,0.15)' }}
+          >
+            Demo erleben →
+          </button>
+        </Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.4 }}>
+          <div style={{ width: 1, height: 28, background: preset.uiDark ? 'linear-gradient(to bottom, rgba(201,169,110,0.5), transparent)' : 'linear-gradient(to bottom, rgba(45,74,62,0.4), transparent)' }} />
+          <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.6rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: preset.uiDark ? 'rgba(237,231,220,0.5)' : 'rgba(45,74,62,0.4)' }}>Scroll to explore</p>
+          <div style={{ width: 1, height: 28, background: preset.uiDark ? 'linear-gradient(to bottom, rgba(201,169,110,0.5), transparent)' : 'linear-gradient(to bottom, rgba(45,74,62,0.4), transparent)' }} />
+        </div>
+      </div>
+
     </main>
   )
 }
