@@ -47,6 +47,27 @@ const HOTEL_CTX: Record<string, { name: string; location: string; facilities: st
   },
 }
 
+async function fetchWeatherCtx(): Promise<string> {
+  const key = process.env.NEXT_PUBLIC_OPENWEATHER_KEY
+  if (!key) return ''
+  try {
+    const res = await fetch(
+      `https://api.openweathermap.org/data/2.5/weather?q=Innsbruck,AT&units=metric&appid=${key}`
+    )
+    if (!res.ok) return ''
+    const d = await res.json()
+    const fmt = (ts: number) =>
+      new Date(ts * 1000).toLocaleTimeString('de-AT', { hour: '2-digit', minute: '2-digit' })
+    const temp = Math.round(d.main.temp)
+    const desc = d.weather[0].description
+    const sunrise = fmt(d.sys.sunrise)
+    const sunset = fmt(d.sys.sunset)
+    return `Current weather in the alpine region: ${temp}°C, ${desc}. Sunrise: ${sunrise}. Sunset: ${sunset}. Use this naturally in activity suggestions — never open with the weather, but weave it in when relevant.`
+  } catch {
+    return ''
+  }
+}
+
 function timeContext(): string {
   const h = new Date().getHours()
   if (h < 6)  return 'late night'
@@ -70,19 +91,23 @@ export async function POST(req: NextRequest) {
   let guestName = '', roomNumber = '', checkIn = '', checkOut = ''
   let hasWellnessBooking = false
 
-  if (stayId) {
-    const [stayRes, bookingsRes] = await Promise.all([
-      sb.from('stays').select('guest_name, room_number, check_in, check_out').eq('id', stayId).single(),
-      sb.from('bookings').select('id').eq('stay_id', stayId).limit(1),
-    ])
-    if (stayRes.data) {
-      guestName    = stayRes.data.guest_name   ?? ''
-      roomNumber   = stayRes.data.room_number  ?? ''
-      checkIn      = stayRes.data.check_in     ?? ''
-      checkOut     = stayRes.data.check_out    ?? ''
-    }
-    hasWellnessBooking = (bookingsRes.data?.length ?? 0) > 0
+  const [weatherCtx, stayData, bookingsData] = await Promise.all([
+    fetchWeatherCtx(),
+    stayId
+      ? sb.from('stays').select('guest_name, room_number, check_in, check_out').eq('id', stayId).single()
+      : Promise.resolve({ data: null }),
+    stayId
+      ? sb.from('bookings').select('id').eq('stay_id', stayId).limit(1)
+      : Promise.resolve({ data: null }),
+  ])
+
+  if (stayData.data) {
+    guestName    = stayData.data.guest_name   ?? ''
+    roomNumber   = stayData.data.room_number  ?? ''
+    checkIn      = stayData.data.check_in     ?? ''
+    checkOut     = stayData.data.check_out    ?? ''
   }
+  hasWellnessBooking = (bookingsData.data?.length ?? 0) > 0
 
   const ctx      = HOTEL_CTX[hotelId ?? 'hotel-demo'] ?? HOTEL_CTX['hotel-demo']
   const modeConf = stayMode ? (MODE_CONF[stayMode] ?? null) : null
@@ -111,7 +136,7 @@ ${stayMode ? `Stay mode: ${stayMode.replace('-', ' ')} — adapt personality and
 
 ${modeConf ? `Personality: ${modeConf.personality}` : 'Be warm, professional, and genuinely helpful.'}
 
-Facilities: ${ctx.facilities}
+${weatherCtx ? `${weatherCtx}\n` : ''}Facilities: ${ctx.facilities}
 Nearby: ${ctx.nearby}
 Check-in ${ctx.checkin} · Check-out ${ctx.checkout} · ${ctx.lateCheckout}
 WiFi: ${ctx.wifi}

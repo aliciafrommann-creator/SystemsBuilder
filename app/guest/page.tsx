@@ -91,6 +91,30 @@ const MODE_SERVICES: Record<string, ServiceItem[]> = {
   ],
 }
 
+type WeatherInfo = { temp: number; desc: string; main: string; sunset: string }
+
+function weatherHint(temp: number, main: string, sunset: string, mode: string | null): string {
+  const isRain = ['Rain', 'Drizzle', 'Thunderstorm'].includes(main)
+  const isSun  = main === 'Clear'
+  const label  = main === 'Clear' ? 'Sonnig' : main === 'Clouds' ? 'Bewölkt' : main === 'Rain' ? 'Regen' : main === 'Snow' ? 'Schneefall' : main === 'Drizzle' ? 'Leichter Regen' : 'Bewölkt'
+  let hint = ''
+  if      (mode === 'quiet'        && isRain) hint = 'Der Regen macht heute den perfekten Lesetag.'
+  else if (mode === 'quiet')                  hint = 'Ruhige Atmosphäre – ideal zum Entspannen.'
+  else if (mode === 'explorer'     && isSun)  hint = `Goldene Stunden bis ${sunset} heute Abend.`
+  else if (mode === 'explorer')               hint = 'Perfekt für alpine Abenteuer.'
+  else if (mode === 'eco'          && isRain) hint = 'Waldluft nach dem Regen – Natur pur.'
+  else if (mode === 'eco')                    hint = 'Die Natur erwacht – ideal für einen Morgenspaziergang.'
+  else if (mode === 'wellness'     && isRain) hint = 'Thermalpool und Sauna – heute extra einladend.'
+  else if (mode === 'wellness')               hint = 'Bewegung und Stille in der Bergluft.'
+  else if (mode === 'deep-rest'    && isRain) hint = 'Regen und Stille – ideale Bedingungen.'
+  else if (mode === 'alpine-reset' && isSun)  hint = 'Sonne, Kälte, Berge – der perfekte Reset-Tag.'
+  else if (mode === 'alpine-reset')           hint = 'Kältebad und Sauna warten auf dich.'
+  else if (isSun)                             hint = 'Idealer Tag für eine Wanderung.'
+  else if (isRain)                            hint = 'Thermalbad und Spa empfohlen heute.'
+  else                                        hint = 'Alpine Atmosphäre pur.'
+  return `${temp}°C · ${label} · ${hint}`
+}
+
 export default function GuestHub() {
   const { stay, hotel, loading: stayLoading, enterStay } = useStay()
   const [activeMode, setActiveMode]   = useState<string | null>(null)
@@ -100,6 +124,7 @@ export default function GuestHub() {
   const [codeErr, setCodeErr]         = useState(false)
   const [codeBusy, setCodeBusy]       = useState(false)
   const [skipped, setSkipped]         = useState(false)
+  const [weather, setWeather]         = useState<WeatherInfo | null>(null)
   const mouseRef = useRef({ x: 0, y: 0 })
   const [mouse, setMouse]             = useState({ x: 0, y: 0 })
 
@@ -108,6 +133,19 @@ export default function GuestHub() {
     const savedMode = localStorage.getItem('af_stay_mode')
     if (savedMode) setActiveMode(savedMode)
     return () => clearTimeout(t)
+  }, [])
+
+  useEffect(() => {
+    const key = process.env.NEXT_PUBLIC_OPENWEATHER_KEY
+    if (!key) return
+    fetch(`https://api.openweathermap.org/data/2.5/weather?q=Innsbruck,AT&units=metric&appid=${key}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (!d) return
+        const fmt = (ts: number) => new Date(ts * 1000).toLocaleTimeString('de-AT', { hour: '2-digit', minute: '2-digit' })
+        setWeather({ temp: Math.round(d.main.temp), desc: d.weather[0].description, main: d.weather[0].main, sunset: fmt(d.sys.sunset) })
+      })
+      .catch(() => {})
   }, [])
 
   const onMouseMove = useCallback((e: MouseEvent) => {
@@ -215,6 +253,15 @@ export default function GuestHub() {
       </header>
 
       <div style={{ maxWidth: 1080, margin: '0 auto', padding: '4rem 2rem 5rem', opacity: loaded ? 1 : 0, transform: loaded ? 'none' : 'translateY(22px)', transition: 'all 1s cubic-bezier(0.16,1,0.3,1)', position: 'relative', zIndex: 1 }}>
+
+        {weather && (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', marginBottom: '2.2rem', padding: '7px 16px', borderRadius: 100, background: selected ? 'rgba(255,255,255,0.055)' : 'rgba(250,250,247,0.8)', border: selected ? '1px solid rgba(255,255,255,0.09)' : '1px solid rgba(200,184,154,0.22)', backdropFilter: 'blur(14px)', transition: 'all 1s ease' }}>
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: selected ? (selected.accent) : '#4a8a6a', display: 'inline-block', flexShrink: 0 }} />
+            <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.72rem', letterSpacing: '0.02em', color: selected ? 'rgba(237,231,220,0.72)' : 'var(--color-bark)', lineHeight: 1, whiteSpace: 'nowrap' }}>
+              {weatherHint(weather.temp, weather.main, weather.sunset, activeMode)}
+            </span>
+          </div>
+        )}
 
         <div style={{ marginBottom: '3rem' }}>
           <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.75rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: selected ? 'rgba(201,169,110,0.65)' : 'var(--color-stone)', marginBottom: '0.8rem', transition: 'color 1s ease' }}>

@@ -7,6 +7,14 @@ const HOTEL_ID = 'hotel-demo'
 
 type Req = { id: string; type: string; payload: Record<string, unknown>; status: string; created_at: string; room?: string; guest?: string }
 type Bk  = { id: string; session_label: string; session_time: string; duration: string; price_cents: number; payment_method: string; status: string; created_at: string; room?: string; guest?: string }
+type RevRow = { category: string; amount_eur: number }
+
+const DEMO_REVENUE: { category: string; label: string; amount: number; count: number; unit: string }[] = [
+  { category: 'wellness',     label: 'Wellness-Buchungen',  amount: 680, count: 8,  unit: 'Buchungen' },
+  { category: 'mobility',     label: 'Shuttle & Mobilität', amount: 180, count: 12, unit: 'Reservierungen' },
+  { category: 'experiences',  label: 'Lokale Erlebnisse',   amount: 290, count: 5,  unit: 'Buchungen' },
+  { category: 'upgrades',     label: 'Zimmer-Upgrades',     amount: 90,  count: 2,  unit: 'Upgrades' },
+]
 
 export default function StaffDashboard() {
   const [requests, setRequests] = useState<Req[]>([])
@@ -14,6 +22,10 @@ export default function StaffDashboard() {
   const [tab, setTab]           = useState<'requests' | 'bookings'>('requests')
   const [loaded, setLoaded]     = useState(false)
   const [live, setLive]         = useState(false)
+  const [revenueOpen, setRevenueOpen] = useState(false)
+  const [revenueItems, setRevenueItems] = useState(DEMO_REVENUE)
+  const [revenueTotal, setRevenueTotal] = useState(1240)
+  const [revenueIsDemo, setRevenueIsDemo] = useState(true)
 
   useEffect(() => {
     load()
@@ -21,10 +33,32 @@ export default function StaffDashboard() {
       .channel('staff:' + HOTEL_ID)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'requests' }, load)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, load)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'revenue_events' }, loadRevenue)
       .subscribe(status => setLive(status === 'SUBSCRIBED'))
     return () => { supabase.removeChannel(ch) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  async function loadRevenue() {
+    const weekAgo = new Date(Date.now() - 7 * 86_400_000).toISOString()
+    const { data } = await supabase
+      .from('revenue_events')
+      .select('category, amount_eur')
+      .eq('hotel_id', HOTEL_ID)
+      .gte('created_at', weekAgo)
+    if (data && data.length > 0) {
+      const grouped: Record<string, number> = {}
+      ;(data as RevRow[]).forEach(r => { grouped[r.category] = (grouped[r.category] ?? 0) + r.amount_eur })
+      const items = Object.entries(grouped).map(([cat, amt]) => {
+        const demo = DEMO_REVENUE.find(d => d.category === cat)
+        return { category: cat, label: demo?.label ?? cat, amount: Math.round(amt), count: 0, unit: demo?.unit ?? 'Buchungen' }
+      })
+      const total = items.reduce((s, i) => s + i.amount, 0)
+      setRevenueItems(items)
+      setRevenueTotal(total)
+      setRevenueIsDemo(false)
+    }
+  }
 
   async function load() {
     const [rRes, bRes] = await Promise.all([
@@ -36,6 +70,7 @@ export default function StaffDashboard() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (bRes.data) setBookings(bRes.data.map((b: any) => ({ ...b, room: b.stays?.room_number, guest: b.stays?.guest_name })))
     setLoaded(true)
+    loadRevenue()
   }
 
   const updateStatus = async (id: string, status: string) => {
@@ -61,6 +96,46 @@ export default function StaffDashboard() {
       </header>
 
       <div style={{ maxWidth: 860, margin: '0 auto', padding: '2rem 2rem 5rem' }}>
+
+        {/* Revenue card */}
+        <div style={{ borderRadius: 18, background: 'rgba(30,55,38,0.45)', border: '1px solid rgba(74,158,106,0.22)', padding: '1.5rem 1.75rem', marginBottom: '2rem', backdropFilter: 'blur(18px)' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem' }}>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.6rem', letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(74,158,106,0.7)', marginBottom: '0.5rem' }}>
+                AlpineFlow Zusatzumsatz{revenueIsDemo ? ' · Demo' : ''}
+              </p>
+              <p style={{ fontFamily: 'var(--font-serif)', fontWeight: 300, fontSize: '1.75rem', color: '#FAFAF7', lineHeight: 1.1, marginBottom: '0.35rem' }}>
+                Diese Woche generiert: <span style={{ color: '#6fcf97', fontWeight: 400 }}>€{revenueTotal.toLocaleString('de')}</span>
+              </p>
+              <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.72rem', color: 'rgba(237,231,220,0.38)', letterSpacing: '0.02em' }}>Direkt generiert durch Gäste-Interaktionen</p>
+            </div>
+            <button
+              onClick={() => setRevenueOpen(o => !o)}
+              style={{ background: 'rgba(74,158,106,0.12)', border: '1px solid rgba(74,158,106,0.2)', borderRadius: 100, padding: '6px 14px', fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.7rem', color: 'rgba(111,207,151,0.75)', cursor: 'pointer', flexShrink: 0, transition: 'all 0.2s ease', letterSpacing: '0.04em' }}
+            >
+              {revenueOpen ? 'Schliessen ↑' : 'Details ↓'}
+            </button>
+          </div>
+
+          {revenueOpen && (
+            <div style={{ marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid rgba(74,158,106,0.14)', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+              {revenueItems.map(item => (
+                <div key={item.category} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div>
+                    <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.82rem', color: 'rgba(237,231,220,0.78)' }}>{item.label}</span>
+                    {item.count > 0 && <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.68rem', color: 'rgba(237,231,220,0.32)', marginLeft: '0.5rem' }}>{item.count} {item.unit}</span>}
+                  </div>
+                  <span style={{ fontFamily: 'var(--font-serif)', fontWeight: 300, fontSize: '1rem', color: '#6fcf97' }}>€{item.amount.toLocaleString('de')}</span>
+                </div>
+              ))}
+              <div style={{ marginTop: '0.35rem', paddingTop: '0.85rem', borderTop: '1px solid rgba(74,158,106,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 400, fontSize: '0.78rem', color: 'rgba(237,231,220,0.5)', letterSpacing: '0.04em' }}>Gesamt diese Woche</span>
+                <span style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, fontSize: '1.15rem', color: '#FAFAF7' }}>€{revenueTotal.toLocaleString('de')}</span>
+              </div>
+            </div>
+          )}
+        </div>
+
         <div style={{ display: 'flex', gap: 8, marginBottom: '2rem' }}>
           {(['requests', 'bookings'] as const).map(t => (
             <button key={t} onClick={() => setTab(t)} style={{ padding: '7px 20px', borderRadius: 100, fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.78rem', letterSpacing: '0.04em', cursor: 'pointer', background: tab === t ? '#2D4A3E' : 'rgba(45,74,62,0.12)', color: tab === t ? '#FAFAF7' : 'rgba(237,231,220,0.4)', border: tab === t ? '1px solid #2D4A3E' : '1px solid rgba(45,74,62,0.18)', transition: 'all 0.25s ease', textTransform: 'capitalize' }}>
