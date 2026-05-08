@@ -7,22 +7,15 @@ import { getCurrentPreset } from '@/lib/alpineflow/timeOfDay'
 
 const AlpineCanvas = dynamic(
   () => import('@/components/alpineflow/three/AlpineLobbyCanvas').then(m => ({ default: m.AlpineLobbyCanvas })),
-  { ssr: false, loading: () => <AlpineFallback /> }
+  { ssr: false }
 )
 
-function AlpineFallback() {
-  return (
-    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(160deg, #1A2E28 0%, #2D4A3E 50%, #0F1C18 100%)' }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 80% 60% at 50% 60%, rgba(201,169,110,0.12) 0%, transparent 65%)' }} />
-    </div>
-  )
-}
-
+// nature → hotel exterior → hotel spa → hotel lobby (fly-in sequence)
 const ALPINE_PHOTOS = [
-  'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=85&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=1920&q=85&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1920&q=85&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=85&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80',
+  'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=1920&q=80',
+  'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1920&q=80',
+  'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1920&q=80',
 ]
 
 export default function AlpineFlowLobby() {
@@ -60,7 +53,7 @@ export default function AlpineFlowLobby() {
 
       <style>{`
         @keyframes kenBurns {
-          from { transform: scale(1.15); }
+          from { transform: scale(1.12); }
           to   { transform: scale(1.0); }
         }
       `}</style>
@@ -73,116 +66,151 @@ export default function AlpineFlowLobby() {
             style={{
               position: 'absolute', inset: 0,
               backgroundImage: `url(${ALPINE_PHOTOS[photoIdx]})`,
-              backgroundSize: 'cover', backgroundPosition: 'center',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
               animation: 'kenBurns 10s cubic-bezier(0.16,1,0.3,1) forwards',
               opacity: fading ? 0 : 1,
               transition: 'opacity 1.2s ease',
             }}
           />
         </div>
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 100%)' }} />
+        {/* Gradient overlay: light at top, stronger at bottom for CTA readability */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.5) 100%)',
+        }} />
       </div>
 
-      {/* Three.js atmospheric overlay */}
-      <div style={{ position: 'absolute', inset: 0, zIndex: 1, opacity: 0.4, mixBlendMode: 'screen', pointerEvents: 'none' }}>
+      {/* Three.js — nearly invisible atmospheric particle layer */}
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 1,
+        opacity: 0.06, mixBlendMode: 'screen', pointerEvents: 'none',
+      }}>
         <AlpineCanvas />
       </div>
 
-      {/* Header */}
+      {/* Top nav */}
       <header style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
         padding: '1.5rem 2rem', pointerEvents: 'none',
         opacity: loaded ? 1 : 0, transition: 'opacity 1.5s ease 0.5s',
       }}>
-        <span style={{
-          fontFamily: 'var(--font-serif)', fontWeight: 300,
-          fontSize: '1.2rem', letterSpacing: '-0.01em',
-          color: 'rgba(250,250,247,0.9)',
-          pointerEvents: 'all',
-        }}>
-          AlpineFlow
-        </span>
-        <nav style={{ display: 'flex', gap: '1.5rem', pointerEvents: 'all', alignItems: 'center' }}>
+        <nav style={{ display: 'flex', gap: '1.8rem', pointerEvents: 'all', alignItems: 'center' }}>
           {[{ l: 'Guest', h: '/guest' }, { l: 'Wellness', h: '/guest/wellness' }, { l: 'Discover', h: '/guest/discovery' }].map(n => (
             <Link key={n.l} href={n.h}>
               <span style={{
                 fontFamily: 'var(--font-sans)', fontWeight: 300,
-                fontSize: '0.72rem', letterSpacing: '0.1em', textTransform: 'uppercase',
-                color: 'rgba(237,231,220,0.55)',
-                cursor: 'pointer',
+                fontSize: '0.7rem', letterSpacing: '0.12em', textTransform: 'uppercase',
+                color: 'rgba(255,255,255,0.5)', cursor: 'pointer',
+                textShadow: '0 1px 8px rgba(0,0,0,0.4)',
               }}>{n.l}</span>
             </Link>
           ))}
-          <Link href="/hotel">
-            <span style={{
-              fontFamily: 'var(--font-sans)', fontWeight: 300,
-              fontSize: '0.72rem', letterSpacing: '0.1em', textTransform: 'uppercase',
-              color: 'rgba(201,169,110,0.65)',
-              cursor: 'pointer',
-            }}>Hotel</span>
-          </Link>
         </nav>
       </header>
 
       {/* Time of day badge */}
       <div style={{
         position: 'fixed', top: '1.5rem', left: '50%', transform: 'translateX(-50%)',
-        zIndex: 100, opacity: loaded ? 0.7 : 0, transition: 'opacity 2s ease 1s', pointerEvents: 'none',
+        zIndex: 100, opacity: loaded ? 0.65 : 0, transition: 'opacity 2s ease 1s', pointerEvents: 'none',
       }}>
         <div style={{
-          background: 'rgba(15,28,24,0.7)',
-          border: '1px solid rgba(201,169,110,0.2)',
+          background: 'rgba(0,0,0,0.35)',
+          border: '1px solid rgba(255,255,255,0.12)',
           borderRadius: 100, padding: '4px 14px', backdropFilter: 'blur(12px)',
           display: 'flex', alignItems: 'center', gap: 6,
         }}>
           <span style={{ fontSize: '0.6rem' }}>
             {preset.phase === 'dawn' ? '🌅' : preset.phase === 'morning' ? '🌄' : preset.phase === 'day' ? '☀️' : preset.phase === 'golden' ? '🌇' : preset.phase === 'dusk' ? '🌆' : '🌙'}
           </span>
-          <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.65rem', letterSpacing: '0.08em', color: 'rgba(237,231,220,0.7)' }}>
+          <span style={{
+            fontFamily: 'var(--font-sans)', fontWeight: 300,
+            fontSize: '0.62rem', letterSpacing: '0.1em',
+            color: 'rgba(255,255,255,0.65)',
+          }}>
             {preset.label}
           </span>
         </div>
       </div>
 
-      {/* Demo CTA */}
+      {/* Center hero */}
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 10,
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        marginTop: '-4vh',
+        opacity: loaded ? 1 : 0,
+        transform: loaded ? 'none' : 'translateY(12px)',
+        transition: 'opacity 2s ease 0.8s, transform 2s ease 0.8s',
+        pointerEvents: 'none',
+      }}>
+        <h1 style={{
+          fontFamily: 'var(--font-serif)', fontWeight: 300,
+          fontSize: 'clamp(2.8rem, 6vw, 5rem)',
+          letterSpacing: '0.15em',
+          color: '#ffffff',
+          margin: 0,
+          textShadow: '0 2px 20px rgba(0,0,0,0.3)',
+          lineHeight: 1,
+        }}>
+          AlpineFlow
+        </h1>
+        <p style={{
+          fontFamily: 'var(--font-sans)', fontWeight: 300,
+          fontSize: '0.9rem',
+          letterSpacing: '0.2em',
+          color: 'rgba(255,255,255,0.75)',
+          margin: '1.1rem 0 0',
+          textShadow: '0 1px 12px rgba(0,0,0,0.3)',
+          textTransform: 'uppercase',
+        }}>
+          Digitale Atmosphäre für nachhaltiges Reisen
+        </p>
+      </div>
+
+      {/* Demo CTA — bottom center */}
       <div style={{
         position: 'fixed', bottom: '2.5rem', left: '50%', transform: 'translateX(-50%)',
         zIndex: 100, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem',
-        opacity: loaded ? 1 : 0, transition: 'opacity 2s ease 1.8s',
+        opacity: loaded ? 1 : 0, transition: 'opacity 2s ease 2s',
       }}>
         <Link href="/guest?demo=true">
           <button
             style={{
-              padding: '13px 32px', borderRadius: 100,
-              background: 'rgba(45,74,62,0.85)',
-              border: '1px solid rgba(201,169,110,0.35)',
+              padding: '13px 36px', borderRadius: 100,
+              background: 'rgba(45,74,62,0.88)',
+              border: '1px solid rgba(201,169,110,0.4)',
               color: '#FAFAF7',
               fontFamily: 'var(--font-sans)', fontWeight: 300,
-              fontSize: '0.88rem', letterSpacing: '0.08em',
+              fontSize: '0.88rem', letterSpacing: '0.1em',
               cursor: 'pointer',
               backdropFilter: 'blur(20px)',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px rgba(201,169,110,0.15)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(201,169,110,0.15)',
               transition: 'all 0.3s ease',
             }}
             onMouseEnter={e => {
               const b = e.currentTarget as HTMLButtonElement
               b.style.background = '#2D4A3E'
-              b.style.boxShadow = '0 12px 40px rgba(45,74,62,0.6), 0 0 0 1px rgba(201,169,110,0.25)'
+              b.style.boxShadow = '0 12px 40px rgba(45,74,62,0.6), 0 0 0 1px rgba(201,169,110,0.3)'
             }}
             onMouseLeave={e => {
               const b = e.currentTarget as HTMLButtonElement
-              b.style.background = 'rgba(45,74,62,0.85)'
-              b.style.boxShadow = '0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px rgba(201,169,110,0.15)'
+              b.style.background = 'rgba(45,74,62,0.88)'
+              b.style.boxShadow = '0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(201,169,110,0.15)'
             }}
           >
             Demo erleben →
           </button>
         </Link>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.4 }}>
-          <div style={{ width: 1, height: 28, background: 'linear-gradient(to bottom, rgba(201,169,110,0.5), transparent)' }} />
-          <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.6rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(237,231,220,0.5)' }}>Scroll to explore</p>
-          <div style={{ width: 1, height: 28, background: 'linear-gradient(to bottom, rgba(201,169,110,0.5), transparent)' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', opacity: 0.35 }}>
+          <div style={{ width: 1, height: 24, background: 'linear-gradient(to bottom, rgba(255,255,255,0.5), transparent)' }} />
+          <p style={{
+            fontFamily: 'var(--font-sans)', fontWeight: 300,
+            fontSize: '0.58rem', letterSpacing: '0.18em', textTransform: 'uppercase',
+            color: 'rgba(255,255,255,0.6)',
+          }}>Scroll to explore</p>
+          <div style={{ width: 1, height: 24, background: 'linear-gradient(to bottom, rgba(255,255,255,0.5), transparent)' }} />
         </div>
       </div>
 
