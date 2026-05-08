@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { useStay } from '@/lib/alpineflow/stay-context'
+import { useMode } from '@/lib/alpineflow/mode-context'
 
 const IMG = (id: string, w = 800) =>
   `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=80`
@@ -45,6 +46,8 @@ type Cat = typeof CATS[0]
 
 export default function WellnessPage() {
   const { stay } = useStay()
+  const { mode } = useMode()
+  const isDark = !!mode
   const [cat, setCat]         = useState('spa')
   const [booking, setBooking] = useState<{ session: Session; cat: Cat } | null>(null)
   const [payStep, setPayStep] = useState<'choose' | 'processing' | 'done'>('choose')
@@ -76,28 +79,46 @@ export default function WellnessPage() {
     setPayStep('done')
   }
 
-  return (
-    <main style={{ minHeight: '100vh', background: 'linear-gradient(160deg, #F0EBE3 0%, #E8E0D4 100%)' }}>
+  const mainBg = isDark
+    ? `radial-gradient(ellipse at 30% 40%, ${mode.light}55 0%, ${mode.bg} 65%)`
+    : 'linear-gradient(160deg, #F0EBE3 0%, #E8E0D4 100%)'
 
-      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.35rem 2rem', position: 'sticky', top: 0, zIndex: 20, background: 'rgba(247,244,239,0.9)', backdropFilter: 'blur(22px)', borderBottom: '1px solid rgba(200,184,154,0.18)' }}>
-        <Link href="/"><span style={{ fontFamily: 'var(--font-serif)', fontWeight: 300, fontSize: '1.25rem', color: 'var(--color-deep)', cursor: 'pointer' }}>AlpineFlow</span></Link>
-        <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.7rem', letterSpacing: '0.1em', color: 'var(--color-stone)' }}>Berghotel Sonnwend &middot; Ötztal</span>
-        <Link href="/guest"><span style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.7rem', letterSpacing: '0.08em', color: 'var(--color-stone)', cursor: 'pointer' }}>Back to stay</span></Link>
+  const headerBg     = isDark ? 'rgba(0,0,0,0.18)' : 'rgba(247,244,239,0.9)'
+  const headerBorder = isDark ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(200,184,154,0.18)'
+  const brandCol     = isDark ? 'rgba(250,250,247,0.92)' : 'var(--color-deep)'
+  const stoneCol     = isDark ? 'rgba(237,231,220,0.45)' : 'var(--color-stone)'
+  const catBtnBase   = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(250,250,247,0.8)'
+  const catBtnBorder = isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(200,184,154,0.28)'
+  const catBtnText   = isDark ? 'rgba(237,231,220,0.7)' : 'var(--color-earth)'
+
+  return (
+    <main style={{ minHeight: '100vh', background: mainBg, transition: 'background 1.2s cubic-bezier(0.16,1,0.3,1)' }}>
+
+      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.35rem 2rem', position: 'sticky', top: 0, zIndex: 20, background: headerBg, backdropFilter: 'blur(22px)', borderBottom: headerBorder, transition: 'all 1s ease' }}>
+        <Link href="/"><span style={{ fontFamily: 'var(--font-serif)', fontWeight: 300, fontSize: '1.25rem', color: brandCol, cursor: 'pointer' }}>AlpineFlow</span></Link>
+        <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.7rem', letterSpacing: '0.1em', color: stoneCol }}>
+          Berghotel Sonnwend &middot; Ötztal
+          {mode && <span style={{ color: mode.accent, marginLeft: '0.5rem' }}>&middot; {mode.name}</span>}
+        </span>
+        <Link href="/guest"><span style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.7rem', letterSpacing: '0.08em', color: stoneCol, cursor: 'pointer' }}>Back to stay</span></Link>
       </header>
 
       <div style={{ position: 'relative', height: 320, overflow: 'hidden' }}>
         <img src={current.headerImg} alt={current.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'opacity 0.8s ease' }} key={current.id} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(15,20,18,0.65) 100%)' }} />
+        {isDark && <div style={{ position: 'absolute', inset: 0, background: `${mode.color}40`, mixBlendMode: 'color', pointerEvents: 'none' }} />}
         <div style={{ position: 'absolute', bottom: '2.5rem', left: '2.5rem', opacity: loaded ? 1 : 0, transform: loaded ? 'none' : 'translateY(14px)', transition: 'all 1s cubic-bezier(0.16,1,0.3,1)' }}>
           <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.7rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(237,231,220,0.6)', marginBottom: '0.5rem' }}>Wellness</p>
-          <h1 style={{ fontFamily: 'var(--font-serif)', fontWeight: 300, fontSize: 'clamp(2rem,4.5vw,3.2rem)', letterSpacing: '-0.025em', lineHeight: 1.05, color: '#FAFAF7' }}>Restore.<br /><em style={{ fontStyle: 'italic', color: 'rgba(201,169,110,0.9)' }}>Deeply.</em></h1>
+          <h1 style={{ fontFamily: 'var(--font-serif)', fontWeight: 300, fontSize: 'clamp(2rem,4.5vw,3.2rem)', letterSpacing: '-0.025em', lineHeight: 1.05, color: '#FAFAF7' }}>
+            Restore.<br /><em style={{ fontStyle: 'italic', color: isDark ? mode.accent : 'rgba(201,169,110,0.9)' }}>Deeply.</em>
+          </h1>
         </div>
       </div>
 
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '2.5rem 2rem 5rem', opacity: loaded ? 1 : 0, transition: 'opacity 1s ease' }}>
         <div style={{ display: 'flex', gap: 8, marginBottom: '2.5rem', flexWrap: 'wrap' }}>
           {CATS.map(c => (
-            <button key={c.id} onClick={() => setCat(c.id)} style={{ background: cat === c.id ? c.color : 'rgba(250,250,247,0.8)', color: cat === c.id ? '#FAFAF7' : 'var(--color-earth)', border: cat === c.id ? `1px solid ${c.color}` : '1px solid rgba(200,184,154,0.28)', padding: '8px 20px', borderRadius: 100, fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.82rem', letterSpacing: '0.02em', cursor: 'pointer', transition: 'all 0.35s cubic-bezier(0.16,1,0.3,1)', boxShadow: cat === c.id ? `0 4px 18px ${c.color}40` : 'none' }}>
+            <button key={c.id} onClick={() => setCat(c.id)} style={{ background: cat === c.id ? (isDark ? mode.accent : c.color) : catBtnBase, color: cat === c.id ? '#FAFAF7' : catBtnText, border: cat === c.id ? 'none' : catBtnBorder, padding: '8px 20px', borderRadius: 100, fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.82rem', letterSpacing: '0.02em', cursor: 'pointer', transition: 'all 0.35s cubic-bezier(0.16,1,0.3,1)', boxShadow: cat === c.id ? `0 4px 18px ${isDark ? mode.accent : c.color}40` : 'none' }}>
               {c.icon} {c.name}
             </button>
           ))}
@@ -109,20 +130,20 @@ export default function WellnessPage() {
               key={s.time}
               style={{ position: 'relative', borderRadius: 18, overflow: 'hidden', height: 140, cursor: s.avail ? 'pointer' : 'default', opacity: s.avail ? 1 : 0.5, transition: 'all 0.4s cubic-bezier(0.16,1,0.3,1)', boxShadow: '0 2px 16px rgba(0,0,0,0.08)' }}
               onClick={() => s.avail && openBooking(s)}
-              onMouseEnter={e => { if (s.avail) { (e.currentTarget as HTMLDivElement).style.transform = 'scale(1.012)'; (e.currentTarget as HTMLDivElement).style.boxShadow = `0 12px 40px ${current.color}30` } }}
+              onMouseEnter={e => { if (s.avail) { (e.currentTarget as HTMLDivElement).style.transform = 'scale(1.012)'; (e.currentTarget as HTMLDivElement).style.boxShadow = `0 12px 40px ${isDark ? mode.accent : current.color}30` } }}
               onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = 'none'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 16px rgba(0,0,0,0.08)' }}
             >
               <img src={s.img} alt={s.label} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 55%, rgba(0,0,0,0.55) 100%)' }} />
               <div style={{ position: 'absolute', left: '1.4rem', top: '50%', transform: 'translateY(-50%)' }}>
-                <p style={{ fontFamily: 'var(--font-serif)', fontWeight: 300, fontSize: '0.85rem', color: 'rgba(201,169,110,0.85)', marginBottom: 4, letterSpacing: '0.04em' }}>{s.time} &middot; {s.duration}</p>
+                <p style={{ fontFamily: 'var(--font-serif)', fontWeight: 300, fontSize: '0.85rem', color: isDark ? mode.accent : 'rgba(201,169,110,0.85)', marginBottom: 4, letterSpacing: '0.04em' }}>{s.time} &middot; {s.duration}</p>
                 <h3 style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, fontSize: '1.15rem', color: '#FAFAF7', marginBottom: 5, lineHeight: 1.2 }}>{s.label}</h3>
                 <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.72rem', color: 'rgba(237,231,220,0.6)', lineHeight: 1.5, maxWidth: '38ch' }}>{s.desc.split('.')[0]}.</p>
               </div>
               <div style={{ position: 'absolute', right: '1.4rem', top: '50%', transform: 'translateY(-50%)', textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 10 }}>
                 <span style={{ fontFamily: 'var(--font-serif)', fontWeight: 300, fontSize: '1.5rem', color: '#FAFAF7', lineHeight: 1 }}>€{s.price}</span>
                 {s.avail ? (
-                  <button onClick={e => { e.stopPropagation(); openBooking(s) }} style={{ background: current.color, color: '#FAFAF7', borderRadius: 100, padding: '7px 20px', fontSize: '0.75rem', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)', fontWeight: 300, letterSpacing: '0.05em', boxShadow: `0 4px 16px ${current.color}50`, whiteSpace: 'nowrap' }}>Book</button>
+                  <button onClick={e => { e.stopPropagation(); openBooking(s) }} style={{ background: isDark ? mode.accent : current.color, color: '#FAFAF7', borderRadius: 100, padding: '7px 20px', fontSize: '0.75rem', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)', fontWeight: 300, letterSpacing: '0.05em', boxShadow: `0 4px 16px ${isDark ? mode.accent : current.color}50`, whiteSpace: 'nowrap' }}>Book</button>
                 ) : (
                   <span style={{ fontSize: '0.72rem', color: 'rgba(237,231,220,0.5)', fontFamily: 'var(--font-sans)' }}>Full today</span>
                 )}
@@ -135,7 +156,6 @@ export default function WellnessPage() {
       {booking && (
         <div onClick={e => { if (e.target === e.currentTarget) setBooking(null) }} style={{ position: 'fixed', inset: 0, background: 'rgba(10,12,10,0.72)', backdropFilter: 'blur(10px)', zIndex: 50, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
           <div style={{ width: '100%', maxWidth: 560, borderRadius: '22px 22px 0 0', background: '#FAFAF7', overflow: 'hidden', boxShadow: '0 -12px 60px rgba(0,0,0,0.28)' }}>
-
             {payStep === 'choose' && (
               <>
                 <div style={{ position: 'relative', height: 210, overflow: 'hidden' }}>
@@ -143,7 +163,7 @@ export default function WellnessPage() {
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.08) 30%, rgba(0,0,0,0.68) 100%)' }} />
                   <div style={{ position: 'absolute', bottom: '1.4rem', left: '1.5rem', right: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                     <div>
-                      <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.65rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(201,169,110,0.75)', marginBottom: 4 }}>{booking.cat.name}</p>
+                      <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.65rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: isDark ? mode.accent : 'rgba(201,169,110,0.75)', marginBottom: 4 }}>{booking.cat.name}</p>
                       <h3 style={{ fontFamily: 'var(--font-serif)', fontWeight: 300, fontSize: '1.45rem', color: '#FAFAF7', lineHeight: 1.15 }}>{booking.session.label}</h3>
                       <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.72rem', color: 'rgba(237,231,220,0.6)', marginTop: 4 }}>{booking.session.time} &middot; {booking.session.duration}</p>
                     </div>
@@ -157,7 +177,7 @@ export default function WellnessPage() {
                   <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.85rem', color: 'var(--color-earth)', lineHeight: 1.65, marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid rgba(200,184,154,0.2)' }}>{booking.session.desc}</p>
                   <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.72rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--color-stone)', marginBottom: '0.875rem' }}>How would you like to pay?</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginBottom: '1rem' }}>
-                    <button onClick={() => handlePay('online')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.25rem', borderRadius: 14, background: booking.cat.color, border: 'none', cursor: 'pointer', boxShadow: `0 4px 20px ${booking.cat.color}40` }}>
+                    <button onClick={() => handlePay('online')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.25rem', borderRadius: 14, background: isDark ? mode.accent : booking.cat.color, border: 'none', cursor: 'pointer', boxShadow: `0 4px 20px ${isDark ? mode.accent : booking.cat.color}40` }}>
                       <div style={{ textAlign: 'left' }}>
                         <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 400, fontSize: '0.88rem', color: '#FAFAF7', marginBottom: 2 }}>Pay now online</p>
                         <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.72rem', color: 'rgba(237,231,220,0.65)' }}>Secure payment &middot; directly to hotel</p>
@@ -167,7 +187,7 @@ export default function WellnessPage() {
                     <button onClick={() => handlePay('room')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.25rem', borderRadius: 14, background: 'rgba(250,248,244,0.9)', border: '1px solid rgba(200,184,154,0.28)', cursor: 'pointer' }}>
                       <div style={{ textAlign: 'left' }}>
                         <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 400, fontSize: '0.88rem', color: 'var(--color-deep)', marginBottom: 2 }}>Charge to room bill</p>
-                        <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.72rem', color: 'var(--color-stone)' }}>Room 201 &middot; settle at checkout</p>
+                        <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.72rem', color: 'var(--color-stone)' }}>Room {stay?.room_number ?? '201'} &middot; settle at checkout</p>
                       </div>
                       <span style={{ color: 'var(--color-stone)', fontSize: '1.1rem' }}>&#8594;</span>
                     </button>
@@ -176,22 +196,20 @@ export default function WellnessPage() {
                 </div>
               </>
             )}
-
             {payStep === 'processing' && (
               <div style={{ textAlign: 'center', padding: '3rem 2rem' }}>
-                <div style={{ width: 48, height: 48, borderRadius: '50%', border: `2px solid ${booking.cat.color}30`, borderTopColor: booking.cat.color, margin: '0 auto 1.5rem', animation: 'spin 1s linear infinite' }} />
+                <div style={{ width: 48, height: 48, borderRadius: '50%', border: `2px solid ${isDark ? mode.accent : booking.cat.color}30`, borderTopColor: isDark ? mode.accent : booking.cat.color, margin: '0 auto 1.5rem', animation: 'spin 1s linear infinite' }} />
                 <p style={{ fontFamily: 'var(--font-serif)', fontWeight: 300, fontSize: '1.2rem', color: 'var(--color-deep)' }}>Confirming your booking&#8230;</p>
               </div>
             )}
-
             {payStep === 'done' && (
               <div style={{ textAlign: 'center', padding: '2.5rem 2rem' }}>
-                <div style={{ width: 52, height: 52, borderRadius: '50%', background: `${booking.cat.color}15`, border: `1.5px solid ${booking.cat.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem', fontSize: '1.25rem', color: booking.cat.color }}>&#10003;</div>
+                <div style={{ width: 52, height: 52, borderRadius: '50%', background: `${isDark ? mode.accent : booking.cat.color}15`, border: `1.5px solid ${isDark ? mode.accent : booking.cat.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem', fontSize: '1.25rem', color: isDark ? mode.accent : booking.cat.color }}>&#10003;</div>
                 <h3 style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, fontSize: '1.4rem', color: 'var(--color-deep)', marginBottom: '0.5rem' }}>Booked.</h3>
                 <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.88rem', color: 'var(--color-bark)', lineHeight: 1.65, marginBottom: '1.5rem' }}>
                   {booking.session.label} at {booking.session.time}.<br />Added to your stay at Berghotel Sonnwend.
                 </p>
-                <button onClick={() => setBooking(null)} style={{ background: booking.cat.color, color: '#FAFAF7', border: 'none', borderRadius: 100, padding: '10px 28px', fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.82rem', cursor: 'pointer', letterSpacing: '0.04em' }}>Done</button>
+                <button onClick={() => setBooking(null)} style={{ background: isDark ? mode.accent : booking.cat.color, color: '#FAFAF7', border: 'none', borderRadius: 100, padding: '10px 28px', fontFamily: 'var(--font-sans)', fontWeight: 300, fontSize: '0.82rem', cursor: 'pointer', letterSpacing: '0.04em' }}>Done</button>
               </div>
             )}
           </div>
