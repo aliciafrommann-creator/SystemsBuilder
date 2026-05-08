@@ -1,6 +1,7 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
 import { useStay } from '@/lib/alpineflow/stay-context'
+import { MODE_CONFIGS, type StayModeId } from '@/hooks/useStayMode'
 
 type Msg = { role: 'user' | 'assistant'; content: string }
 
@@ -12,16 +13,23 @@ export default function ConciergeChat() {
   const [thinking, setThinking] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
 
-  const color   = hotel?.color_primary ?? '#2D4A3E'
+  const stayMode = useState<StayModeId | null>(() => {
+    if (typeof window === 'undefined') return null
+    const saved = localStorage.getItem('af_stay_mode') as StayModeId | null
+    return saved && saved in MODE_CONFIGS ? saved : null
+  })[0]
+
+  const color     = hotel?.color_primary ?? '#2D4A3E'
   const hotelName = hotel?.name ?? 'AlpineFlow'
-  const first   = stay?.guest_name?.split(' ')[0] ?? null
+  const first     = stay?.guest_name?.split(' ')[0] ?? null
 
   useEffect(() => {
     if (open && msgs.length === 0) {
-      setMsgs([{
-        role: 'assistant',
-        content: `Guten Tag${first ? `, ${first}` : ''}! I'm your personal concierge at ${hotelName}. How can I make your stay more wonderful today?`,
-      }])
+      const modeConf = stayMode ? MODE_CONFIGS[stayMode] : null
+      const opener = modeConf
+        ? (first ? `${first} — ${modeConf.conciergeOpener}` : modeConf.conciergeOpener)
+        : `Guten Tag${first ? `, ${first}` : ''}! I'm your personal concierge at ${hotelName}. How can I make your stay more wonderful today?`
+      setMsgs([{ role: 'assistant', content: opener }])
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
@@ -43,8 +51,9 @@ export default function ConciergeChat() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: updated,
-          stayId: stay?.id,
-          hotelId: stay?.hotel_id,
+          stayId:   stay?.id,
+          hotelId:  stay?.hotel_id,
+          stayMode: stayMode ?? undefined,
         }),
       })
       const data = await res.json()
@@ -58,9 +67,8 @@ export default function ConciergeChat() {
   return (
     <>
       {open && (
-        <div style={{ position: 'fixed', bottom: 90, right: 24, width: 340, maxHeight: 500, borderRadius: 22, background: '#FAFAF7', boxShadow: `0 28px 72px rgba(0,0,0,0.2), 0 0 0 1px rgba(200,184,154,0.18)`, zIndex: 100, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ position: 'fixed', bottom: 90, right: 24, width: 340, maxHeight: 500, borderRadius: 22, background: '#FAFAF7', boxShadow: '0 28px 72px rgba(0,0,0,0.2), 0 0 0 1px rgba(200,184,154,0.18)', zIndex: 100, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
-          {/* Header */}
           <div style={{ background: color, padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
             <div>
               <p style={{ fontFamily: 'var(--font-serif)', fontWeight: 300, fontSize: '1.05rem', color: '#FAFAF7', lineHeight: 1 }}>Concierge</p>
@@ -69,7 +77,6 @@ export default function ConciergeChat() {
             <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', color: 'rgba(237,231,220,0.65)', cursor: 'pointer', fontSize: '1.4rem', lineHeight: 1, padding: 0 }}>&times;</button>
           </div>
 
-          {/* Messages */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
             {msgs.map((m, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
@@ -90,7 +97,6 @@ export default function ConciergeChat() {
             <div ref={bottomRef} />
           </div>
 
-          {/* Input */}
           <div style={{ padding: '0.75rem', borderTop: '1px solid rgba(200,184,154,0.16)', display: 'flex', gap: 8, flexShrink: 0 }}>
             <input
               value={input}
@@ -110,7 +116,6 @@ export default function ConciergeChat() {
         </div>
       )}
 
-      {/* Floating button */}
       <button
         onClick={() => setOpen(o => !o)}
         style={{ position: 'fixed', bottom: 24, right: 24, width: 56, height: 56, borderRadius: '50%', background: color, border: 'none', cursor: 'pointer', boxShadow: `0 8px 28px ${color}55`, zIndex: 100, fontSize: open ? '1.5rem' : '1.3rem', color: '#FAFAF7', transition: 'all 0.35s cubic-bezier(0.16,1,0.3,1)', transform: open ? 'scale(0.9)' : 'scale(1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
